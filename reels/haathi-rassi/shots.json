@@ -34,19 +34,24 @@
  },
  "characters": {
   "haathi": {
-   "look": "a huge old grey Indian circus elephant with one chipped left tusk, a faded red-and-gold embroidered cloth on its back and sad amber eyes"
+   "look": "a huge old grey Indian circus elephant with one chipped left tusk, a faded red-and-gold embroidered cloth on its back and sad amber eyes",
+   "short": "huge old grey Asian elephant with two tusks and a red-and-gold cloth on its back"
   },
   "baby_haathi": {
-   "look": "a small baby grey Indian elephant with big amber eyes and a tiny red-and-gold cloth on its back"
+   "look": "a small baby grey Indian elephant with big amber eyes and a tiny red-and-gold cloth on its back",
+   "short": "tiny baby grey Asian elephant"
   },
   "mahavat": {
-   "look": "a thin middle-aged Indian circus mahout with a grey moustache, white turban and faded orange kurta"
+   "look": "a thin middle-aged Indian circus mahout with a grey moustache, white turban and faded orange kurta",
+   "short": "Indian mahout with white turban and orange kurta"
   },
   "bachcha": {
-   "look": "a curious 8-year-old Indian village boy in a blue half-sleeve shirt and khaki shorts"
+   "look": "a curious 8-year-old Indian village boy in a blue half-sleeve shirt and khaki shorts",
+   "short": "8-year-old Indian boy in blue shirt"
   },
   "narrator": {
-   "look": "a kind Indian storyteller in his 60s with a neat white beard, round brass glasses, saffron shawl over a cream kurta, sitting in a cosy lamp-lit study full of old books, holding an open leather storybook"
+   "look": "a kind Indian storyteller in his 60s with a neat white beard, round brass glasses, saffron shawl over a cream kurta, sitting in a cosy lamp-lit study full of old books, holding an open leather storybook",
+   "short": "old Indian storyteller with white beard, round glasses and saffron shawl"
   }
  },
  "shots": [
@@ -57,10 +62,13 @@
     "haathi"
    ],
    "camera": "pull_out",
-   "vo": "सर्कस के एक विशाल हाथी को सिर्फ एक पतली सी रस्सी से बाँधा जाता था।",
-   "cap": "Circus ke ek vishaal haathi ko sirf ek patli si rassi se baandha jaata tha.",
+   "vo": "सर्कस के विशाल हाथी को, बस एक पतली सी रस्सी से बाँधा जाता था।",
+   "cap": "Circus ke vishaal haathi ko, bas ek patli si rassi se baandha jaata tha.",
    "image_prompt": "Low-angle wide shot of the giant elephant standing calmly outside a striped circus tent at dusk, its massive front leg tied with only a thin frayed rope to a small wooden peg in the ground, lanterns glowing, dust in the air.",
-   "motion_prompt": "The elephant slowly swings its trunk, lantern flames flicker, dust drifts."
+   "motion_prompt": "The elephant slowly swings its trunk, lantern flames flicker, dust drifts.",
+   "sdxl_prompt": "Low-angle wide shot of a huge grey elephant standing alone in front of a red and yellow striped circus tent at dusk, a thin rope from its front leg to a small wooden peg, hanging lanterns, empty dusty ground",
+   "seed": 7,
+   "sdxl_no_chars": true
   },
   {
    "id": "s02",
@@ -72,7 +80,10 @@
    "vo": "वो चाहता, तो एक झटके में खूँटा उखाड़ फेंकता।",
    "cap": "Woh chahta, to ek jhatke mein khoonta ukhaad phenkta.",
    "image_prompt": "Close-up of the elephant's huge wrinkled leg and the thin rope tied around it, the tiny wooden peg barely in the soil, strong contrast between the giant leg and the weak rope.",
-   "motion_prompt": "The rope trembles slightly as the leg shifts its weight."
+   "motion_prompt": "The rope trembles slightly as the leg shifts its weight.",
+   "sdxl_prompt": "Close-up of an elephant's grey leg with a thin rope tied around it, the rope tied to a small wooden stake in the dirt",
+   "seed": 11,
+   "sdxl_no_chars": true
   },
   {
    "id": "s03",
@@ -84,7 +95,9 @@
    "vo": "पर उसने कभी कोशिश ही नहीं की।",
    "cap": "Par usne kabhi koshish hi nahi ki.",
    "image_prompt": "Extreme close-up of the elephant's tired amber eye with long eyelashes and deep wrinkles, a tear of resignation, warm lantern light on the skin.",
-   "motion_prompt": "The elephant slowly blinks once."
+   "motion_prompt": "The elephant slowly blinks once.",
+   "sdxl_prompt": "Extreme close-up portrait of an old elephant's sad amber eye, deep skin wrinkles, long eyelashes, a single tear, warm lantern light, macro shot",
+   "sdxl_no_chars": true
   },
   {
    "id": "s04",
@@ -95,10 +108,12 @@
     "haathi"
    ],
    "camera": "pan_right",
-   "vo": "एक दिन एक बच्चे ने महावत से पूछा, ये भागता क्यों नहीं?",
-   "cap": "Ek din ek bachche ne mahaavat se poocha, ye bhaagta kyun nahi?",
+   "vo": "एक बच्चे ने महावत से पूछा, ये भागता क्यों नहीं?",
+   "cap": "Ek bachche ne mahaavat se poocha, ye bhaagta kyun nahi?",
    "image_prompt": "Medium shot: the curious boy tugging the mahout's kurta and pointing at the tied elephant behind them, the mahout looking down at the boy, circus wagons in the background in golden afternoon light.",
-   "motion_prompt": "The boy points and looks up, the mahout turns his head."
+   "motion_prompt": "The boy points and looks up, the mahout turns his head.",
+   "sdxl_prompt": "Medium shot, a curious little Indian boy in a blue shirt pointing at a tied elephant, a mahout in white turban and orange kurta beside him, circus wagons, golden afternoon",
+   "sdxl_no_chars": true
   },
   {
    "id": "s05",
@@ -107,10 +122,12 @@
     "mahavat"
    ],
    "camera": "push_in",
-   "vo": "महावत हँसा, और बोला... जब ये छोटा था, तब इसे इसी रस्सी से बाँधा था।",
-   "cap": "Mahaavat hansa, aur bola... jab ye chhota tha, tab ise isi rassi se baandha tha.",
+   "vo": "महावत हँसा, और बोला... बचपन में इसे इसी रस्सी से बाँधा था।",
+   "cap": "Mahaavat hansa, aur bola... bachpan mein ise isi rassi se baandha tha.",
    "image_prompt": "Close-up of the mahout laughing knowingly, holding up the same thin frayed rope in his hand, warm side light, circus tent stripes blurred behind.",
-   "motion_prompt": "The mahout chuckles and lifts the rope slightly."
+   "motion_prompt": "The mahout chuckles and lifts the rope slightly.",
+   "sdxl_prompt": "Close-up portrait of a laughing Indian mahout with grey moustache and white turban holding up a thin frayed rope, circus tent stripes behind",
+   "sdxl_no_chars": true
   },
   {
    "id": "s06",
@@ -122,7 +139,10 @@
    "vo": "तब इसने बहुत ज़ोर लगाया, रोया, तड़पा... पर रस्सी नहीं टूटी।",
    "cap": "Tab isne bahut zor lagaaya, roya, tadpa... par rassi nahi tooti.",
    "image_prompt": "Flashback: the baby elephant pulling desperately against a thin rope tied to a wooden peg, trunk raised crying, dust flying, dramatic stormy evening sky.",
-   "motion_prompt": "The baby elephant pulls and strains, the rope stretches tight, dust flies."
+   "motion_prompt": "The baby elephant pulls and strains, the rope stretches tight, dust flies.",
+   "sdxl_prompt": "A small cute baby elephant pulling a rope with all its strength, the rope tied to a wooden stake, baby elephant crying, dust, orange evening",
+   "seed": 21,
+   "sdxl_no_chars": true
   },
   {
    "id": "s07",
@@ -134,7 +154,8 @@
    "vo": "धीरे-धीरे, इसने मान लिया, कि ये रस्सी कभी नहीं टूटेगी।",
    "cap": "Dheere-dheere, isne maan liya, ki ye rassi kabhi nahi tootegi.",
    "image_prompt": "The baby elephant lying down exhausted on the dusty ground next to the peg, head resting on the soil, eyes half closed, the rope slack, cold blue moonlight.",
-   "motion_prompt": "Slow breathing, the baby elephant closes its eyes."
+   "motion_prompt": "Slow breathing, the baby elephant closes its eyes.",
+   "sdxl_prompt": "A tiny baby elephant lying exhausted on dusty ground beside a wooden peg, head down, eyes half closed, slack rope, cold blue moonlight, no people"
   },
   {
    "id": "s08",
@@ -143,10 +164,11 @@
     "haathi"
    ],
    "camera": "tilt_up",
-   "vo": "आज ये दस गुना ताक़तवर है, पर दिमाग़ आज भी उसी रस्सी में बँधा है।",
-   "cap": "Aaj ye das guna taaqatwar hai, par dimaag aaj bhi usi rassi mein bandha hai.",
+   "vo": "आज ये दस गुना ताक़तवर है, पर दिमाग़ आज भी बँधा है।",
+   "cap": "Aaj ye das guna taaqatwar hai, par dimaag aaj bhi bandha hai.",
    "image_prompt": "Symbolic shot: the giant adult elephant standing tall, and a ghostly thin rope wrapped around its forehead like a chain, faint image of the baby elephant reflected in a puddle below.",
-   "motion_prompt": "The ghostly rope glows faintly, ripples in the puddle."
+   "motion_prompt": "The ghostly rope glows faintly, ripples in the puddle.",
+   "sdxl_prompt": "A huge old elephant standing tall alone, a glowing ghostly rope wrapped around its forehead, its reflection as a baby elephant in a puddle below, mystical, no people"
   },
   {
    "id": "s09",
@@ -157,7 +179,9 @@
    "vo": "फिर एक रात... सर्कस में आग लग गई।",
    "cap": "Phir ek raat... circus mein aag lag gayi.",
    "image_prompt": "Wide night shot of the circus tent on fire, huge orange flames and sparks against a dark sky, smoke rising, people running in silhouette.",
-   "motion_prompt": "Flames rage and sparks fly upward, smoke billows."
+   "motion_prompt": "Flames rage and sparks fly upward, smoke billows.",
+   "sdxl_prompt": "Wide night shot of a big circus tent on fire, huge orange flames and sparks, black smoke, small silhouettes of people running",
+   "sdxl_no_chars": true
   },
   {
    "id": "s10",
@@ -167,7 +191,9 @@
    "vo": "सब जानवर भाग गए।",
    "cap": "Sab jaanwar bhaag gaye.",
    "image_prompt": "Horses, camels and monkeys escaping through broken fences away from the burning circus, motion and panic, orange firelight on their bodies.",
-   "motion_prompt": "Animals run across the frame, embers fall."
+   "motion_prompt": "Animals run across the frame, embers fall.",
+   "sdxl_prompt": "Horses, camels and monkeys running away through a broken wooden fence from a burning circus, orange firelight, motion, panic",
+   "sdxl_no_chars": true
   },
   {
    "id": "s11",
@@ -176,10 +202,13 @@
     "haathi"
    ],
    "camera": "push_eyes",
-   "vo": "पर वो हाथी वहीं खड़ा रहा... क्योंकि उसे लगता था, कि वो बँधा है।",
-   "cap": "Par woh haathi wahin khada raha... kyunki use lagta tha, ki woh bandha hai.",
+   "vo": "पर वो हाथी वहीं खड़ा रहा... क्योंकि उसे लगता था, वो बँधा है।",
+   "cap": "Par woh haathi wahin khada raha... kyunki use lagta tha, woh bandha hai.",
    "image_prompt": "The elephant standing still beside the thin rope and peg while fire burns behind it, its face lit by flames, eyes full of fear, the rope clearly loose on the ground.",
-   "motion_prompt": "Flames flicker behind, the elephant trembles but does not move."
+   "motion_prompt": "Flames flicker behind, the elephant trembles but does not move.",
+   "sdxl_prompt": "A grey elephant standing in front of a burning circus tent at night, big orange flames and sparks behind the elephant, fire light",
+   "seed": 31,
+   "sdxl_no_chars": true
   },
   {
    "id": "s12",
@@ -189,7 +218,10 @@
    "vo": "इस कहानी से सीखो। तुम्हें दुनिया ने नहीं, तुम्हारी पुरानी हार ने बाँध रखा है।",
    "cap": "Is kahaani se seekho. Tumhe duniya ne nahi, tumhari purani haar ne baandh rakha hai.",
    "image_prompt": "Close-up of a thin frayed rope snapping in the middle, fibres bursting apart in slow motion, glowing sunrise light behind it.",
-   "motion_prompt": "The rope snaps apart in slow motion, fibres float."
+   "motion_prompt": "The rope snaps apart in slow motion, fibres float.",
+   "sdxl_prompt": "Close-up of a thick rope breaking apart in the middle, frayed fibres, bright light behind, simple composition",
+   "sdxl_no_chars": true,
+   "seed": 41
   },
   {
    "id": "s13",
@@ -201,7 +233,10 @@
    "vo": "रस्सी कमज़ोर है। बस एक बार... फिर से ज़ोर लगाओ।",
    "cap": "Rassi kamzor hai. Bas ek baar... phir se zor lagao.",
    "image_prompt": "Hero shot from a low angle: the elephant walking free towards a golden sunrise over open hills, trunk raised triumphantly, the broken rope lying behind it.",
-   "motion_prompt": "The elephant walks forward and raises its trunk, birds fly."
+   "motion_prompt": "The elephant walks forward and raises its trunk, birds fly.",
+   "sdxl_prompt": "Low-angle shot of a huge grey elephant walking free toward a giant golden rising sun over green hills, trunk raised high in joy, birds in the sky, a broken rope lying on the ground",
+   "seed": 51,
+   "sdxl_no_chars": true
   },
   {
    "id": "s14",
@@ -211,10 +246,12 @@
     "narrator"
    ],
    "camera": "still",
-   "vo": "वैसे सच बताना, आपकी वो कौन सी रस्सी है, जो आपको रोक रही है? कमेंट में लिखो, और ऐसी ही सीख के लिए, फॉलो कर लो।",
-   "cap": "Vaise sach batana, aapki woh kaun si rassi hai, jo aapko rok rahi hai? Comment mein likho, aur aisi hi seekh ke liye, follow kar lo.",
+   "vo": "वैसे सच बताना, आपकी वो कौन सी रस्सी है, जो आपको रोक रही है? कमेंट में लिखो, और फॉलो कर लो।",
+   "cap": "Vaise sach batana, aapki woh kaun si rassi hai, jo aapko rok rahi hai? Comment mein likho, aur follow kar lo.",
    "image_prompt": "The storyteller looking warmly at the viewer and pointing with his index finger towards the camera, an open storybook on his lap, warm lamp light, bookshelves behind.",
-   "motion_prompt": "The storyteller smiles and points at the viewer, lamp light flickers."
+   "motion_prompt": "The storyteller smiles and points at the viewer, lamp light flickers.",
+   "sdxl_prompt": "Portrait of a kind old Indian storyteller with neat white beard, round brass glasses and saffron shawl, smiling and pointing at the viewer, open old book in his lap, cosy lamp-lit study with bookshelves",
+   "sdxl_no_chars": true
   }
  ]
 }

@@ -51,6 +51,11 @@
     "parler": {
       "speaker": "Rohit",
       "timbre": "a deep, low-pitched, slightly husky male voice"
+    },
+    "kokoro": {
+      "voice": "hm_omega",
+      "speed": 1.12,
+      "measured_f0_hz": 127
     }
   },
   "ayaan": {
@@ -104,6 +109,11 @@
     "parler": {
       "speaker": "Rohit",
       "timbre": "a warm, calm, moderate-pitched male voice"
+    },
+    "kokoro": {
+      "voice": "hm_psi",
+      "speed": 1.0,
+      "measured_f0_hz": 142
     }
   }
 }

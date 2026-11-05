@@ -13,6 +13,10 @@ STYLES = {
         'suffix': (' Vertical 9:16 frame, main subject in the middle third, empty calm area at the bottom quarter, '
                    'no text, no letters, no watermark, no border.'),
         'music_mood': 'warm',
+        # compact versions for SDXL (each CLIP encoder reads only 77 tokens)
+        'sdxl_short': 'full-color vintage storybook illustration, ink linework, warm burnt orange, rust and cream colors, golden light',
+        'sdxl_long': ('Full-color vintage 1970s graphic novel illustration, detailed ink linework, cross-hatching, warm burnt orange, '
+                      'rust, olive and cream palette, golden-hour light, painterly storybook, full-bleed edge to edge.'),
     },
     'B': {
         'name': 'Retro Pulp Comic',
@@ -22,6 +26,9 @@ STYLES = {
         'suffix': (' Vertical 9:16 frame, main subject in the middle third, empty calm area at the bottom quarter, '
                    'no text, no letters, no speech bubbles, no watermark, no border.'),
         'music_mood': 'dramatic',
+        'sdxl_short': 'retro pulp comic book art, bold black outlines, halftone, saturated blue orange red colors, dramatic light',
+        'sdxl_long': ('Retro pulp comic book illustration, bold black ink outlines, halftone shading, saturated vintage print colors, '
+                      'deep blue, burnt orange, crimson, mustard, dramatic lighting, full-bleed edge to edge.'),
     },
 }
 

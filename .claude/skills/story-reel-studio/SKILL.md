@@ -24,7 +24,11 @@ inputs are missing and tells you what is needed).
 
 ## Rules
 - Never skip step 1's quality checklist or step 2's art-director review of the stills.
-- Keys: `GEMINI_API_KEY` (images), `ELEVENLABS_API_KEY` or `OPENAI_API_KEY` (voice) are optional.
+- **Default = 100 % open-source, no keys:** images with SDXL + SDXL-Lightning (`local_images.py`, ~30 s/image
+  on CPU; use `--variants 3` for weak shots and pick by eye), voice with Kokoro-82M (`hm_omega` = Aakash pitch,
+  `hm_psi` = Ayaan pitch) directed by the measured pause engine. Write a concise framing-first
+  `sdxl_prompt` per shot (CLIP reads 77 tokens) and `sdxl_no_chars: true` for close-ups/no-character shots.
+- Keys: `GEMINI_API_KEY` (images), `ELEVENLABS_API_KEY` or `OPENAI_API_KEY` (voice) are optional upgrades.
   Without them: images come from the free apps via `prompts.md`; voice via free edge-tts (runs on a
   normal PC/phone internet; it cannot run inside a cloud sandbox whose proxy blocks WebSockets).
   `pollinations` images are draft quality: use them only to test the layout, never for posting.

@@ -20,8 +20,8 @@ Script marks you can use inside "vo":
   [p] -> extra pause        *word* -> emphasis (ElevenLabs only)
 
 Usage:
-  python3 tools/story_reel/tts.py reels/<slug> [--persona aakash|ayaan] [--provider parler|elevenlabs|openai|edge]
-  (default without keys: parler = open-source AI4Bharat Indic Parler-TTS, runs locally)
+  python3 tools/story_reel/tts.py reels/<slug> [--persona aakash|ayaan] [--provider kokoro|parler|elevenlabs|openai|edge]
+  (default without keys: kokoro = open-source Kokoro-82M, Apache-2.0, runs locally; parler needs a HF token)
   python3 tools/story_reel/tts.py reels/<slug> --plan        # only print the directed plan
 """
 import argparse, asyncio, json, os, re, subprocess, sys, tempfile, urllib.parse, urllib.request
@@ -35,7 +35,7 @@ SR = 44100
 # p25 ~0.22, median ~0.38, p75 ~0.48, p90 ~0.52, max ~0.64. Persona scales them (ayaan breathes more).
 PAUSE = {'rhetorical': 0.78, 'comma': 0.22, 'breath': 0.18, 'sentence': 0.40, 'question': 0.46, 'beat': 0.52,
          'pre_moral': 0.62, 'shot_end': 0.40, 'extra': 0.35, 'final': 0.0}
-PERSONA_SCALE = {'aakash': 0.92, 'ayaan': 1.12}
+PERSONA_SCALE = {'aakash': 0.80, 'ayaan': 1.12}
 MAX_WORDS = 8          # longest phrase without a breath (reference: ~5-7 words between pauses)
 SPEECH_VERBS = {'बोला', 'बोली', 'बोले', 'कहा', 'पूछा', 'चिल्लाया', 'चिल्लाए', 'दहाड़ा', 'हँसा', 'हंसा'}
 BREATH_BEFORE = {'सिर्फ', 'और', 'पर', 'लेकिन', 'कि', 'तो', 'जो', 'क्योंकि', 'जब', 'तब', 'फिर', 'वरना', 'बल्कि'}
@@ -164,8 +164,20 @@ def parler_description(persona, beat):
             'The recording is of very high quality, with the speaker very close to the microphone, no background noise and no reverberation.')
 
 
+def synth_kokoro_batch(plan, persona, tmp):
+    """Kokoro-82M (Apache-2.0): voice picked by measured pitch, expression via per-beat speed."""
+    py = os.environ.get('ML_PYTHON') or next((p for p in (os.path.expanduser('~/ml/bin/python'), '/home/user/ml/bin/python') if os.path.exists(p)), '')
+    if not py: sys.exit('ML virtualenv missing: see tools/story_reel/kokoro_worker.py header')
+    k = PROFILES[persona]['kokoro']; outs = [os.path.join(tmp, f'{i:03d}.wav') for i in range(len(plan))]
+    jobs = [{'text': p['text'].replace('*', ''), 'voice': k['voice'], 'out': o,
+             'speed': round(k['speed'] * BEAT_STYLE[p['beat']]['speed'], 3)} for p, o in zip(plan, outs)]
+    jf = os.path.join(tmp, 'jobs.json'); json.dump(jobs, open(jf, 'w'), ensure_ascii=False)
+    subprocess.run([py, os.path.join(HERE, 'kokoro_worker.py'), jf], check=True)
+    return outs
+
+
 def synth_parler_batch(plan, persona, tmp):
-    py = os.environ.get('PARLER_PYTHON', os.path.expanduser('~/tts/bin/python'))
+    py = os.environ.get('PARLER_PYTHON') or next((p for p in (os.path.expanduser('~/tts/bin/python'), '/home/user/tts/bin/python') if os.path.exists(p)), '')
     if not os.path.exists(py): sys.exit('parler virtualenv missing: see tools/story_reel/parler_worker.py header')
     outs = [os.path.join(tmp, f'{i:03d}.wav') for i in range(len(plan))]
     for attempt in range(3):
@@ -199,6 +211,7 @@ def trim(x, db=-42, keep=0.03):
 
 
 def room_tone(n, level=0.0009):
+    if n <= 0: return np.zeros(0, np.float32)
     rng = np.random.default_rng(n)
     t = rng.normal(0, 1, n).astype(np.float32); t = np.convolve(t, np.ones(30) / 30, 'same')
     return t / (np.std(t) + 1e-9) * level
@@ -269,11 +282,11 @@ def main():
     if a.plan:
         for p in plan: print(f"{p['shot']} {p['beat']:9s} {p['text']}  ⏸ {p['pause_after']}s ({p['kind']})")
         return
-    prov = a.provider or ('elevenlabs' if os.environ.get('ELEVENLABS_API_KEY') else 'openai' if os.environ.get('OPENAI_API_KEY') else 'parler')
+    prov = a.provider or ('elevenlabs' if os.environ.get('ELEVENLABS_API_KEY') else 'openai' if os.environ.get('OPENAI_API_KEY') else 'kokoro')
     tmp = tempfile.mkdtemp(); pieces = []
-    if prov == 'parler':
-        pieces = [trim(load(o)) for o in synth_parler_batch(plan, persona, tmp)]
-    for i, p in enumerate(plan if prov != 'parler' else []):
+    if prov in ('parler', 'kokoro'):
+        pieces = [trim(load(o)) for o in (synth_parler_batch if prov == 'parler' else synth_kokoro_batch)(plan, persona, tmp)]
+    for i, p in enumerate(plan if prov not in ('parler', 'kokoro') else []):
         f = os.path.join(tmp, f'{i:03d}.' + ('wav' if prov == 'openai' else 'mp3'))
         prev_t = ' '.join(q['text'] for q in plan[max(0, i - 2):i]); next_t = ' '.join(q['text'] for q in plan[i + 1:i + 3])
         for attempt in range(3):

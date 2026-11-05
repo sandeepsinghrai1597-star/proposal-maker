@@ -22,7 +22,7 @@ def main():
         prov = a.image_provider or ('gemini' if os.environ.get('GEMINI_API_KEY') else 'openai' if os.environ.get('OPENAI_API_KEY') else 'local')
         if prov == 'local':   # open-source SDXL-Lightning on this machine, no key needed
             run(os.path.join(H, 'gen_images.py'), d, '--provider', 'manual')   # still writes prompts.md
-            ml = os.environ.get('ML_PYTHON', os.path.expanduser('~/ml/bin/python'))
+            ml = os.environ.get('ML_PYTHON') or next((p for p in (os.path.expanduser('~/ml/bin/python'), '/home/user/ml/bin/python') if os.path.exists(p)), sys.executable)
             print('$ local SDXL-Lightning'); subprocess.run([ml, os.path.join(H, 'local_images.py'), d])
         else:
             run(os.path.join(H, 'gen_images.py'), d, '--provider', prov, '--characters')

@@ -30,7 +30,7 @@ def load():
     unet.load_state_dict(load_file(hf_hub_download(*LIGHTNING), device='cpu'))
     pipe = StableDiffusionXLPipeline.from_pretrained(BASE, unet=unet, torch_dtype=dt, variant='fp16', use_safetensors=True)
     pipe.scheduler = EulerDiscreteScheduler.from_config(pipe.scheduler.config, timestep_spacing='trailing')
-    pipe.vae.to(torch.float32); pipe.vae.config.force_upcast = True   # avoid bf16 VAE artefacts
+    pipe.vae.config.force_upcast = False   # bf16 has fp32 range, no fp16-style VAE overflow
     pipe.to(dev); pipe.set_progress_bar_config(disable=True)
     torch.set_num_threads(os.cpu_count() or 4)
     return pipe
@@ -43,7 +43,7 @@ def short(prompt, limit=70):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('reel'); ap.add_argument('--only'); ap.add_argument('--force', action='store_true')
-    ap.add_argument('--steps', type=int, default=4); ap.add_argument('--w', type=int, default=768); ap.add_argument('--h', type=int, default=1344)
+    ap.add_argument('--steps', type=int, default=4); ap.add_argument('--variants', type=int, default=1); ap.add_argument('--w', type=int, default=768); ap.add_argument('--h', type=int, default=1344)
     a = ap.parse_args(); d = os.path.abspath(a.reel); spec = json.load(open(os.path.join(d, 'shots.json')))
     os.makedirs(os.path.join(d, 'images'), exist_ok=True)
     only = set(a.only.split(',')) if a.only else None
@@ -52,14 +52,20 @@ def main():
     t0 = time.time(); pipe = load(); print(f'model loaded in {time.time() - t0:.0f}s', flush=True)
     for i, s in enumerate(spec['shots']):
         if s not in todo: continue
-        # SDXL has two text encoders: prompt (subject, CLIP-L) and prompt_2 (style, OpenCLIP-G)
-        full = image_prompt(spec, s)
-        chars = spec.get('characters', {})
-        subject = ' '.join(f"{chars[k]['look']}." for k in s.get('chars', []) if k in chars) + ' ' + s['image_prompt']
+        # SDXL has two text encoders, each reads 77 tokens:
+        #   prompt   (CLIP-L)      -> subject first, then a short style tag
+        #   prompt_2 (OpenCLIP-G)  -> long style first, then subject
+        from styles import STYLES
+        st = STYLES[spec.get('style', 'A')]; chars = spec.get('characters', {})
+        who = '' if s.get('sdxl_no_chars') else ' '.join(f"{chars[k].get('short', chars[k]['look'])}." for k in s.get('chars', []) if k in chars)
+        subject = (s.get('sdxl_prompt') or s['image_prompt']).strip()
+        p1 = f"{subject} {who} {st['sdxl_short']}"
+        p2 = f"{st['sdxl_long']} {who} {subject}"
         t = time.time()
-        img = pipe(prompt=subject.strip(), prompt_2=full, negative_prompt=NEG, num_inference_steps=a.steps, guidance_scale=0,
-                   width=a.w, height=a.h, generator=torch.Generator('cpu').manual_seed(1000 + i)).images[0]
-        img.save(os.path.join(d, 'images', s['id'] + '.png'))
+        for v in range(a.variants):   # --variants N: write <id>_v0.. to pick the best by eye, then rename
+            img = pipe(prompt=p1, prompt_2=p2, negative_prompt=NEG, num_inference_steps=a.steps, guidance_scale=0,
+                       width=a.w, height=a.h, generator=torch.Generator('cpu').manual_seed(s.get('seed', 1000 + i) + v * 7919)).images[0]
+            img.save(os.path.join(d, 'images', s['id'] + (f'_v{v}' if a.variants > 1 else '') + '.png'))
         print(f"image {s['id']} {time.time() - t:.0f}s", flush=True)
 
 
