@@ -47,7 +47,11 @@
     "script_words_60s": [
       140,
       150
-    ]
+    ],
+    "parler": {
+      "speaker": "Rohit",
+      "timbre": "a deep, low-pitched, slightly husky male voice"
+    }
   },
   "ayaan": {
     "elevenlabs_name": "Ayaan - Spiritual Story Narrator",
@@ -96,6 +100,10 @@
     "script_words_60s": [
       120,
       135
-    ]
+    ],
+    "parler": {
+      "speaker": "Rohit",
+      "timbre": "a warm, calm, moderate-pitched male voice"
+    }
   }
 }

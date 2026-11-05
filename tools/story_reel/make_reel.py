@@ -19,7 +19,13 @@ def main():
     have = lambda f: os.path.exists(os.path.join(d, f))
     imgs_ok = all(any(have(f'images/{s["id"]}{e}') for e in ('.png', '.jpg', '.webp')) for s in spec['shots'])
     if not imgs_ok or 'images' in redo:
-        run(os.path.join(H, 'gen_images.py'), d, *(['--provider', a.image_provider] if a.image_provider else []), '--characters')
+        prov = a.image_provider or ('gemini' if os.environ.get('GEMINI_API_KEY') else 'openai' if os.environ.get('OPENAI_API_KEY') else 'local')
+        if prov == 'local':   # open-source SDXL-Lightning on this machine, no key needed
+            run(os.path.join(H, 'gen_images.py'), d, '--provider', 'manual')   # still writes prompts.md
+            ml = os.environ.get('ML_PYTHON', os.path.expanduser('~/ml/bin/python'))
+            print('$ local SDXL-Lightning'); subprocess.run([ml, os.path.join(H, 'local_images.py'), d])
+        else:
+            run(os.path.join(H, 'gen_images.py'), d, '--provider', prov, '--characters')
     if not have('voice.mp3') or 'voice' in redo:
         ok = run(os.path.join(H, 'tts.py'), d, *(['--persona', a.persona] if a.persona else []), *(['--provider', a.voice_provider] if a.voice_provider else []))
         if not ok: print('!! voice failed: rendering a silent preview with estimated timing')

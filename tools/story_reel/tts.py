@@ -20,7 +20,8 @@ Script marks you can use inside "vo":
   [p] -> extra pause        *word* -> emphasis (ElevenLabs only)
 
 Usage:
-  python3 tools/story_reel/tts.py reels/<slug> [--persona aakash|ayaan] [--provider elevenlabs|openai|edge]
+  python3 tools/story_reel/tts.py reels/<slug> [--persona aakash|ayaan] [--provider parler|elevenlabs|openai|edge]
+  (default without keys: parler = open-source AI4Bharat Indic Parler-TTS, runs locally)
   python3 tools/story_reel/tts.py reels/<slug> --plan        # only print the directed plan
 """
 import argparse, asyncio, json, os, re, subprocess, sys, tempfile, urllib.parse, urllib.request
@@ -144,6 +145,42 @@ def synth_edge(item, prev_t, next_t, persona, out):
 
 SYNTH = {'elevenlabs': synth_elevenlabs, 'openai': synth_openai, 'edge': synth_edge}
 
+# Open-source provider: AI4Bharat Indic Parler-TTS. Style is set by a description per beat.
+PARLER_BEAT = {
+    'hook': 'in a slow, suspenseful and slightly dramatic way',
+    'setup': 'in a clear, engaging storytelling way at a moderate pace',
+    'spark': 'with a hint of wonder, at a moderate pace',
+    'pressure': 'in an expressive and intense way at a moderate pace',
+    'dialogue': 'in a very expressive and animated way, like acting out a character',
+    'turn': 'in a slow, intense and dramatic way',
+    'moral': 'slowly, calmly and with deep conviction',
+    'cta': 'in a warm, friendly and confident way at a moderate pace',
+}
+
+
+def parler_description(persona, beat):
+    p = PROFILES[persona]['parler']
+    return (f"{p['speaker']} speaks with {p['timbre']} {PARLER_BEAT.get(beat, PARLER_BEAT['setup'])}. "
+            'The recording is of very high quality, with the speaker very close to the microphone, no background noise and no reverberation.')
+
+
+def synth_parler_batch(plan, persona, tmp):
+    py = os.environ.get('PARLER_PYTHON', os.path.expanduser('~/tts/bin/python'))
+    if not os.path.exists(py): sys.exit('parler virtualenv missing: see tools/story_reel/parler_worker.py header')
+    outs = [os.path.join(tmp, f'{i:03d}.wav') for i in range(len(plan))]
+    for attempt in range(3):
+        jobs = [{'text': p['text'].replace('*', ''), 'description': parler_description(persona, p['beat']), 'out': o, 'seed': 42 + attempt * 101 + i}
+                for i, (p, o) in enumerate(zip(plan, outs))]
+        jf = os.path.join(tmp, 'jobs.json'); json.dump(jobs, open(jf, 'w'), ensure_ascii=False)
+        subprocess.run([py, os.path.join(HERE, 'parler_worker.py'), jf], check=True)
+        bad = []
+        for i, (p, o) in enumerate(zip(plan, outs)):   # sanity: speaking rate and no runaway generation
+            x = trim(load(o)); cps = len(p['text'].replace(' ', '')) / max(.1, len(x) / SR)
+            if not (6 <= cps <= 22): bad.append(i); os.remove(o)
+        if not bad: break
+        print(f'regenerating {len(bad)} phrases with odd timing: {bad}')
+    return outs
+
 
 # ------------------------------------------------------------------ 3. assembly
 def load(path):
@@ -232,9 +269,11 @@ def main():
     if a.plan:
         for p in plan: print(f"{p['shot']} {p['beat']:9s} {p['text']}  ⏸ {p['pause_after']}s ({p['kind']})")
         return
-    prov = a.provider or ('elevenlabs' if os.environ.get('ELEVENLABS_API_KEY') else 'openai' if os.environ.get('OPENAI_API_KEY') else 'edge')
+    prov = a.provider or ('elevenlabs' if os.environ.get('ELEVENLABS_API_KEY') else 'openai' if os.environ.get('OPENAI_API_KEY') else 'parler')
     tmp = tempfile.mkdtemp(); pieces = []
-    for i, p in enumerate(plan):
+    if prov == 'parler':
+        pieces = [trim(load(o)) for o in synth_parler_batch(plan, persona, tmp)]
+    for i, p in enumerate(plan if prov != 'parler' else []):
         f = os.path.join(tmp, f'{i:03d}.' + ('wav' if prov == 'openai' else 'mp3'))
         prev_t = ' '.join(q['text'] for q in plan[max(0, i - 2):i]); next_t = ' '.join(q['text'] for q in plan[i + 1:i + 3])
         for attempt in range(3):

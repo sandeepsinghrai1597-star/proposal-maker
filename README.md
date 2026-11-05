@@ -30,6 +30,21 @@ python3 tools/story_reel/assemble.py reels/<slug>                  # final.mp4 (
 Optional motion: animate each `images/<id>.png` in Meta AI / Grok Imagine / Kling with the motion
 prompt from `prompts.md` and save as `clips/<id>.mp4`; `assemble.py` uses clips automatically.
 
+## 100% open-source mode (default, no keys)
+| Step | Model | License |
+|---|---|---|
+| Images | SDXL base + ByteDance **SDXL-Lightning** 4-step (`tools/story_reel/local_images.py`) | OpenRAIL++ |
+| Voice | AI4Bharat **Indic Parler-TTS** (`tools/story_reel/parler_worker.py`), directed by the measured pause/expression engine | Apache-2.0 |
+| Captions sync | exact phrase map (no ASR) or faster-whisper | MIT |
+| Music | own numpy synth (`tools/make_music.py`) | ours |
+
+Setup once:
+```bash
+python3 -m venv ~/ml && ~/ml/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu && ~/ml/bin/pip install diffusers transformers accelerate safetensors sentencepiece pillow
+python3 -m venv ~/tts && ~/tts/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu && ~/tts/bin/pip install parler-tts soundfile
+```
+CPU speed: ~3-6 min per image, ~1-2x real time for voice. A GPU (Colab/Kaggle free tier) is ~50x faster.
+
 ## Keys (all optional, set as environment variables)
 `GEMINI_API_KEY` (best images, character references) · `OPENAI_API_KEY` · `ELEVENLABS_API_KEY`,
 `ELEVENLABS_VOICE_ID_AAKASH`, `ELEVENLABS_VOICE_ID_AYAAN`.
