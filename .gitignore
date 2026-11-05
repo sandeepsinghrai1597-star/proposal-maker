@@ -6,3 +6,10 @@ reels/*/voice.mp3
 reels/*/still_*.jpg
 reels/*/.video_noaudio.mp4
 __pycache__/
+reels/*/images/
+reels/*/clips/
+reels/*/characters/
+reels/*/still_*.jpg
+reels/*/.tmp/
+reels/*/timing.json
+reels/*/voice_map.json
