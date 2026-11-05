@@ -3,21 +3,99 @@
   "aakash": {
     "elevenlabs_name": "Aakash Aryan - Mystery & Thriller",
     "elevenlabs_voice_id_env": "ELEVENLABS_VOICE_ID_AAKASH",
-    "settings": {"stability": 0.5, "similarity_boost": 0.75, "style": 0.0, "speed": 1.0, "use_speaker_boost": true},
-    "measured": {"f0_median_hz": 127, "f0_p10_p90": [87, 195], "pauses_per_min": [17, 35], "pause_median_s": [0.27, 0.40],
-                  "pause_max_s": 0.64, "pause_share_pct": [10, 18], "dynamics_db": 17.6},
-    "edge": {"voice": "hi-IN-MadhurNeural", "rate": "+2%", "pitch": "-8Hz"},
-    "openai": {"voice": "onyx"},
-    "character": "deep, low, controlled male thriller narrator: suspense in the hook, darker on the conflict, firm on the moral"
+    "settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "style": 0.0,
+      "speed": 1.0,
+      "use_speaker_boost": true
+    },
+    "measured": {
+      "f0_median_hz": 127,
+      "f0_p10_p90": [
+        87,
+        195
+      ],
+      "pauses_per_min": [
+        17,
+        35
+      ],
+      "pause_median_s": [
+        0.27,
+        0.4
+      ],
+      "pause_max_s": 0.64,
+      "pause_share_pct": [
+        10,
+        18
+      ],
+      "dynamics_db": 17.6,
+      "words_per_min": [
+        135,
+        145
+      ]
+    },
+    "edge": {
+      "voice": "hi-IN-MadhurNeural",
+      "rate": "+2%",
+      "pitch": "-8Hz"
+    },
+    "openai": {
+      "voice": "onyx"
+    },
+    "character": "deep, low, controlled male thriller narrator: suspense in the hook, darker on the conflict, firm on the moral",
+    "script_words_60s": [
+      140,
+      150
+    ]
   },
   "ayaan": {
     "elevenlabs_name": "Ayaan - Spiritual Story Narrator",
     "elevenlabs_voice_id_env": "ELEVENLABS_VOICE_ID_AYAAN",
-    "settings": {"stability": 0.5, "similarity_boost": 0.75, "style": 0.0, "speed": 1.0, "use_speaker_boost": true},
-    "measured": {"f0_median_hz": 143, "f0_p10_p90": [104, 213], "pauses_per_min": [36, 42], "pause_median_s": [0.37, 0.46],
-                  "pause_max_s": 0.64, "pause_share_pct": [22, 27], "dynamics_db": 21.4},
-    "edge": {"voice": "hi-IN-MadhurNeural", "rate": "-4%", "pitch": "-2Hz"},
-    "openai": {"voice": "ash"},
-    "character": "warm, calm, wise spiritual storyteller: breathes between phrases, softer dialogue, emotional and slower on the moral"
+    "settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "style": 0.0,
+      "speed": 1.0,
+      "use_speaker_boost": true
+    },
+    "measured": {
+      "f0_median_hz": 143,
+      "f0_p10_p90": [
+        104,
+        213
+      ],
+      "pauses_per_min": [
+        36,
+        42
+      ],
+      "pause_median_s": [
+        0.37,
+        0.46
+      ],
+      "pause_max_s": 0.64,
+      "pause_share_pct": [
+        22,
+        27
+      ],
+      "dynamics_db": 21.4,
+      "words_per_min": [
+        115,
+        138
+      ]
+    },
+    "edge": {
+      "voice": "hi-IN-MadhurNeural",
+      "rate": "-4%",
+      "pitch": "-2Hz"
+    },
+    "openai": {
+      "voice": "ash"
+    },
+    "character": "warm, calm, wise spiritual storyteller: breathes between phrases, softer dialogue, emotional and slower on the moral",
+    "script_words_60s": [
+      120,
+      135
+    ]
   }
 }

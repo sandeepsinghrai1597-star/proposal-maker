@@ -36,8 +36,10 @@ pitch, loudness spread, plus Whisper word timestamps to see *where* the pauses f
 4. **Two personas:**
    - **Aakash:** deep (≈127 Hz), tighter (10-18 % pauses), controlled loudness (≈17.6 dB): thriller and suspense, fits Style B / power stories.
    - **Ayaan:** warmer and higher (≈143 Hz), breathes more (22-27 % pauses), more dynamic (≈21 dB): spiritual and emotional, fits Style A / tragic stories.
-5. **Speech rate** (including pauses): ~130-150 words/min, slower than the Ranger reference (~185 wpm,
-   no pauses). Keep scripts at **150-170 words for ~60-65 s** when using these voices.
+5. **Speech rate** (all 8 files, including pauses): **Aakash 135-145 wpm**, **Ayaan 115-138 wpm**,
+   much slower than the Ranger reference (~185 wpm, no pauses). For a 60 s reel write **140-150 words
+   (Aakash)** or **120-135 words (Ayaan)**. The 179-word demo script runs ~75 s with Aakash: trim it, or
+   accept a 70-75 s reel.
 6. **Script style in the samples:** mythology/history facts told as stories, direct audience questions
    ("यही सुना है ना?"), numbers ("सत्ताइस बेटियाँ", "1792"), and a twist hook ("लेकिन असली हैरानी की बात अभी बाकी है").
 

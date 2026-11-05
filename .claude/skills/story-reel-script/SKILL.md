@@ -17,7 +17,7 @@ Akbar-Birbal, folk tales) or an original animal story.
 ## Hard specs (measured from 7 reference reels)
 | Spec | Target |
 |---|---|
-| Length | **50-60 s** spoken, **165-190 words** in total |
+| Length | **50-65 s**. Words depend on the voice: Ranger-style fast read 165-190 · **Aakash 140-150** · **Ayaan 120-135** (see `tools/story_reel/voice_profiles.json`) |
 | Speed | written for ~185 words/min: short clauses, no long sentences |
 | Language | Simple Hindustani narration in **Devanagari** (`vo`) + identical **Romanised Hinglish** (`cap`) for captions |
 | Shots | **12-16 lines**, one image per line, 2-5 s each |
@@ -49,7 +49,7 @@ Akbar-Birbal, folk tales) or an original animal story.
 - [ ] One dialogue line, one number/sensory detail, one metaphor line
 - [ ] The moral is **new or sharper** than the classic version (modern word: circle, haters, comfort zone, job, phone, log kya kahenge)
 - [ ] No copying the reference account's sentences. Same format, our own words
-- [ ] 165-190 words; `vo` and `cap` say the same thing word for word (cap = Roman transliteration)
+- [ ] word count fits the chosen voice persona; `vo` and `cap` say the same thing word for word (cap = Roman transliteration)
 
 ## Theme bank
 Sangat/circle · log kya kahenge · haters · comfort zone · azaadi vs safe naukri · purani haar ka
