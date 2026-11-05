@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Reel Engine Preview</title>
+<style>
+  @font-face { font-family: 'Poppins'; font-weight: 800; src: url('../../assets/fonts/Poppins-800.woff2') format('woff2'); }
+  @font-face { font-family: 'Poppins'; font-weight: 600; src: url('../../assets/fonts/Poppins-600.woff2') format('woff2'); }
+  @font-face { font-family: 'NotoDeva'; font-weight: 800; src: url('../../assets/fonts/NotoSansDevanagari-800.woff2') format('woff2'); }
+  html, body { margin: 0; background: #111; color: #ddd; font-family: sans-serif; }
+  #wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+  canvas { height: 86vh; aspect-ratio: 9/16; background: #000; }
+  body.capture #wrap { padding: 0; } body.capture #ui { display: none; } body.capture canvas { height: auto; width: 1080px; }
+  #ui { display: flex; gap: 10px; align-items: center; width: min(90vw, 600px); }
+  #ui input[type=range] { flex: 1; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="reel"></canvas>
+  <div id="ui">
+    <button id="play">Play</button>
+    <input id="seek" type="range" min="0" max="1000" value="0">
+    <span id="tc">0.0s</span>
+    <input id="file" type="file" accept=".json">
+  </div>
+</div>
+<script src="engine.js"></script>
+<script>
+  // Preview mode: open this file in Chrome, pick a scenes.json with the file picker (or ?spec=path).
+  const seek = document.getElementById('seek'), tc = document.getElementById('tc');
+  let dur = 0, playing = false, t0 = 0, start = 0;
+  window.fontsReady = Promise.all([
+    document.fonts.load("800 40px 'Poppins'"), document.fonts.load("600 40px 'Poppins'"), document.fonts.load("800 40px 'NotoDeva'", 'हिं')
+  ]);
+  function show(t) { Reel.renderAt(t); tc.textContent = t.toFixed(1) + 's'; seek.value = dur ? t / dur * 1000 : 0; }
+  async function useSpec(spec) { await window.fontsReady; dur = Reel.load(spec); show(0); }
+  document.getElementById('file').onchange = e => { const r = new FileReader(); r.onload = () => useSpec(JSON.parse(r.result)); r.readAsText(e.target.files[0]); };
+  seek.oninput = () => { playing = false; show(seek.value / 1000 * dur); };
+  document.getElementById('play').onclick = () => { playing = !playing; start = performance.now(); t0 = seek.value / 1000 * dur; if (playing) loop(); };
+  function loop() { if (!playing) return; const t = t0 + (performance.now() - start) / 1000; if (t >= dur) { playing = false; return; } show(t); requestAnimationFrame(loop); }
+  const q = new URLSearchParams(location.search).get('spec'); if (q) fetch(q).then(r => r.json()).then(useSpec);
+</script>
+</body>
+</html>

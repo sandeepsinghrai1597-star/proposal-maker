@@ -1,0 +1,80 @@
+{
+  "title": "1% वाला लड़का",
+  "fps": 30,
+  "voice": "voice.mp3",
+  "music": "music.wav",
+  "watermark": "@swiftsite.studio",
+  "scenes": [
+    {
+      "beat": "hook", "bg": "room_night", "duration": 3.6, "kicker": "सच्ची कहानी",
+      "caption": "रात के 2 बजे… सब सो रहे थे, एक लड़का जाग रहा था।",
+      "emphasis": ["2", "जाग"],
+      "characters": [{ "who": "hero", "pose": "sit", "x": 0.6, "face": 1 }],
+      "camera": { "zoom": [1.0, 1.12], "focus": [0.62, 0.62] }
+    },
+    {
+      "beat": "setup", "bg": "night_city", "duration": 3.8, "transition": "whip",
+      "caption": "दिन में वर्दी की ड्यूटी, रात में लैपटॉप पर सपने।",
+      "emphasis": ["सपने"],
+      "characters": [{ "who": "hero", "pose": "walk", "x": 0.15, "to_x": 0.55, "move_ease": "linear" }],
+      "camera": { "zoom": [1.05, 1.1] }
+    },
+    {
+      "beat": "conflict", "bg": "rain", "duration": 4.2, "transition": "fade",
+      "caption": "लोग हँसते थे — इतनी सी सैलरी में क्या कर लेगा?",
+      "emphasis": ["हँसते"],
+      "characters": [
+        { "who": "crowd", "pose": "walk", "x": 0.95, "to_x": 0.65, "face": -1, "scale": 0.85, "move_ease": "linear" },
+        { "who": "crowd", "pose": "point", "x": 0.82, "face": -1, "scale": 0.9 },
+        { "who": "hero", "pose": "sad", "x": 0.35 }
+      ],
+      "camera": { "zoom": [1.12, 1.0] }
+    },
+    {
+      "beat": "low", "bg": "void", "duration": 2.8, "transition": "flash",
+      "caption": "पहले महीने की कमाई — ज़ीरो।",
+      "bigtext": "₹0", "bigtext_at": 0.1,
+      "characters": [{ "who": "hero", "pose": "kneel", "x": 0.5 }],
+      "camera": { "zoom": [1.0, 1.06] }
+    },
+    {
+      "beat": "turn", "bg": "room_night", "duration": 4.0, "transition": "zoom",
+      "caption": "पर उसने हार नहीं मानी। रोज़ बस एक घंटा, एक नया स्किल।",
+      "emphasis": ["हार", "नहीं"],
+      "characters": [{ "who": "hero", "pose": "sit", "x": 0.6 }],
+      "camera": { "zoom": [1.0, 1.15], "focus": [0.62, 0.6] }
+    },
+    {
+      "beat": "build", "bg": "staircase", "duration": 3.6, "transition": "whip",
+      "caption": "हर दिन सिर्फ 1% बेहतर।",
+      "emphasis": ["1%"],
+      "bigtext": "1%", "bigtext_at": 1.2, "bigtext_y": 0.2, "bigtext_size": 200, "caption_y": 0.3,
+      "characters": [{ "who": "hero", "pose": "climb", "x": 0.12, "to_x": 0.62, "move_ease": "linear" }],
+      "camera": { "zoom": [1.0, 1.08], "pan": [0.05, -0.05] }
+    },
+    {
+      "beat": "mentor", "bg": "road", "duration": 5.0, "transition": "fade",
+      "caption": "गुरु ने कहा — सीढ़ियाँ गिनने वाले थक जाते हैं, चढ़ने वाले पहुँच जाते हैं।",
+      "emphasis": ["चढ़ने", "पहुँच"],
+      "characters": [
+        { "who": "mentor", "pose": "point", "x": 0.3, "face": 1 },
+        { "who": "hero", "pose": "look_up", "x": 0.68, "face": -1 }
+      ],
+      "camera": { "zoom": [1.0, 1.1], "focus": [0.5, 0.8] }
+    },
+    {
+      "beat": "payoff", "bg": "mountain_peak", "duration": 4.2, "transition": "flash",
+      "caption": "365 दिन बाद… वही लड़का अपनी मंज़िल पर खड़ा था।",
+      "emphasis": ["365", "मंज़िल"],
+      "characters": [{ "who": "hero", "pose": "celebrate", "x": 0.5, "holds": "flag" }],
+      "camera": { "zoom": [1.15, 1.0], "focus": [0.5, 0.7] }
+    },
+    {
+      "beat": "cta", "bg": "void", "duration": 4.0, "transition": "fade",
+      "caption": "तेरा 1% आज से शुरू होता है। कमेंट में लिख — शुरू।",
+      "emphasis": ["1%", "शुरू।"],
+      "characters": [{ "who": "hero", "pose": "walk", "x": 0.5, "to_x": 0.5 }],
+      "camera": { "zoom": [1.0, 1.05] }
+    }
+  ]
+}

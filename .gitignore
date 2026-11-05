@@ -1,0 +1,8 @@
+# rendered outputs (regenerate with tools/render.mjs)
+reels/*/final.mp4
+reels/*/preview.mp4
+reels/*/music.wav
+reels/*/voice.mp3
+reels/*/still_*.jpg
+reels/*/.video_noaudio.mp4
+__pycache__/
