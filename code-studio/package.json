@@ -1,0 +1,29 @@
+{
+  "name": "code-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chat-driven AI coding agent. Free local models via Ollama, optional Claude Opus 5.5. Reads, writes, runs and tests code in your project folder and pushes to GitHub.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "cli": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.6.0",
+    "express": "^4.22.3",
+    "ollama": "^0.6.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.25",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Code Studio</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+</head>
+<body>
+  <aside id="sidebar">
+    <div class="brand">⌘ Code Studio</div>
+    <button id="newChat" class="primary">+ New chat</button>
+    <div class="section-label">Project folder for new chat</div>
+    <select id="folderSelect"></select>
+    <form id="cloneForm" class="row">
+      <input id="cloneInput" placeholder="owner/repo to clone" />
+      <button type="submit">Clone</button>
+    </form>
+    <div class="section-label">Chats</div>
+    <ul id="sessionList"></ul>
+    <div id="setupWarning" class="warning" hidden></div>
+  </aside>
+
+  <main>
+    <header id="topbar">
+      <button id="menuBtn" class="icon" aria-label="Menu">☰</button>
+      <div id="chatTitle">Code Studio</div>
+      <div class="controls">
+        <select id="modelSelect" title="Model"></select>
+        <select id="effortSelect" title="Effort: higher = smarter, slower, costlier"></select>
+        <label class="toggle" title="Run commands without asking each time">
+          <input type="checkbox" id="autoApprove" /> auto-run
+        </label>
+        <span id="cost" title="Cost of this chat">$0.000</span>
+      </div>
+    </header>
+
+    <div id="messages">
+      <div class="empty" id="emptyState">
+        <h1>What should we build?</h1>
+        <p>Chat in Hindi, Hinglish or English. The agent reads your project, writes code, runs it, tests it and can push to GitHub.</p>
+        <div class="examples">
+          <button>Is folder mein React + Vite ka ek todo app banao, localStorage ke saath, aur build chala ke check karo</button>
+          <button>Explain this project's structure and list possible bugs</button>
+          <button>Python FastAPI backend banao jisme /leads endpoint ho aur tests bhi likho</button>
+          <button>Saare changes commit karo aur GitHub par push karo</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="composer">
+      <textarea id="input" rows="1" placeholder="Kya code karna hai? Likho..." title="Enter = send, Shift+Enter = new line"></textarea>
+      <button id="sendBtn" class="primary" type="submit">Send</button>
+      <button id="stopBtn" type="button" hidden>Stop</button>
+    </form>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
