@@ -93,23 +93,30 @@ class Still:
 
 
 class Clip:
-    """Image-to-video clip: conformed to the shot length (slowed down / held) by ffmpeg once."""
+    """Image-to-video clip, conformed to the shot length (slowed to >=0.5x, then last frame held).
+    Frames are STREAMED from ffmpeg (requests are always in increasing order), so nothing big touches disk."""
 
-    def __init__(self, path, dur, style, tmp):
-        self.style = style; out = tmp
+    def __init__(self, path, dur, style, tmp=None):
+        self.style = style; self.dur = dur; self.path = path
         probe = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', path],
                                      capture_output=True, text=True).stdout.strip() or 0)
-        speed = min(1.0, max(0.5, probe / max(dur, .1)))   # slow at most to 0.5x, then hold last frame
-        vf = (f"setpts=PTS/{speed:.4f},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
-              f"fps={FPS},tpad=stop_mode=clone:stop_duration={dur + 1:.2f}")
-        subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', path, '-vf', vf, '-t', f'{dur + DISSOLVE + .1:.2f}',
-                        '-an', '-f', 'rawvideo', '-pix_fmt', 'rgb24', out], check=True)
-        self.raw = np.memmap(out, dtype=np.uint8, mode='r').reshape(-1, H, W, 3)
-        self.dur = dur
+        speed = min(1.0, max(0.5, probe / max(dur, .1)))
+        self.vf = (f"setpts=PTS/{speed:.4f},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
+                   f"fps={FPS},tpad=stop_mode=clone:stop_duration={dur + 1:.2f}")
+        self.proc = None; self.idx = -1; self.last = None
 
-    def frame(self, k):  # k may exceed 1 slightly during the dissolve
-        i = min(len(self.raw) - 1, max(0, int(k * self.dur * FPS)))
-        return grade(Image.fromarray(np.array(self.raw[i])), self.style)
+    def _next(self):
+        if self.proc is None:
+            self.proc = subprocess.Popen(['ffmpeg', '-loglevel', 'error', '-i', self.path, '-vf', self.vf, '-t', f'{self.dur + DISSOLVE + .5:.2f}',
+                                          '-an', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], stdout=subprocess.PIPE)
+        buf = self.proc.stdout.read(W * H * 3)
+        if len(buf) == W * H * 3: self.last = np.frombuffer(buf, np.uint8).reshape(H, W, 3)
+        self.idx += 1
+
+    def frame(self, k):
+        i = max(0, int(k * self.dur * FPS))
+        while self.idx < i: self._next()
+        return grade(Image.fromarray(self.last), self.style)
 
 
 def card_frame(inner, paper):
@@ -220,7 +227,7 @@ def main():
         if not os.path.exists(img):
             for ext in ('.jpg', '.jpeg', '.webp'):
                 if os.path.exists(img[:-4] + ext): img = img[:-4] + ext
-        if os.path.exists(clip): src = Clip(clip, dur, style, os.path.join(tmpdir, s['id'] + '.raw'))
+        if os.path.exists(clip): src = Clip(clip, dur, style)
         elif os.path.exists(img): src = Still(img, style, s.get('camera', 'push_in'))
         else: sys.exit(f"missing image for shot {s['id']}: put images/{s['id']}.png (see prompts.md)")
         srcs.append((s, st['start'], st['end'], src))
