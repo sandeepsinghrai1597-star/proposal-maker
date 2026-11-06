@@ -26,7 +26,10 @@ function effortFrom(value: string | undefined): Effort {
 }
 
 export const config = {
-  model: process.env.MODEL || "claude-opus-5-5",
+  /** "claude-*" models use the Anthropic API; any other name is a local Ollama model. */
+  model:
+    process.env.MODEL ||
+    (process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN ? "claude-opus-5-5" : "mimo-v2.6:9b"),
   effort: effortFrom(process.env.EFFORT),
   workspace: path.resolve(process.env.WORKSPACE_DIR || "./workspace"),
   dataDir: path.resolve(process.env.DATA_DIR || "./data"),
@@ -35,6 +38,9 @@ export const config = {
   appPassword: process.env.APP_PASSWORD || "",
   githubToken: process.env.GITHUB_TOKEN || "",
   maxTaskUsd: Number(process.env.MAX_TASK_USD || 3),
+  ollamaHost: process.env.OLLAMA_HOST || "http://127.0.0.1:11434",
+  /** Context window for local models. Ollama's default (4k on small machines) is too small for coding agents. */
+  numCtx: Number(process.env.NUM_CTX || 16384),
   /** Hard cap on agent turns per user message, a guard against runaway loops. */
   maxTurns: Number(process.env.MAX_TURNS || 80),
 };
@@ -49,7 +55,16 @@ const PRICES: Record<string, [number, number, number, number]> = {
   "claude-fable-5-1": [10, 50, 0.25, 12.5],
 };
 
-export const MODELS = Object.keys(PRICES);
+export const CLAUDE_MODELS = Object.keys(PRICES);
+
+export function isLocalModel(model: string): boolean {
+  return !model.startsWith("claude-");
+}
+
+/** Accept any Claude model we price, or any plausible Ollama model name like "qwen2.5-coder:7b". */
+export function isValidModel(model: unknown): model is string {
+  return typeof model === "string" && (CLAUDE_MODELS.includes(model) || /^[a-zA-Z0-9][\w.\-/]*(:[\w.\-]+)?$/.test(model));
+}
 
 export interface Usage {
   input_tokens: number;
@@ -59,6 +74,7 @@ export interface Usage {
 }
 
 export function costUsd(model: string, u: Usage): number {
+  if (isLocalModel(model)) return 0;
   const [inp, out, read, write] = PRICES[model] ?? PRICES["claude-opus-5-5"];
   return (
     (u.input_tokens * inp +

@@ -173,6 +173,50 @@ async function tree(dir: string, depth: number, prefix = ""): Promise<string[]> 
   return lines;
 }
 
+/** bash everywhere; on Windows use Git Bash when installed (it comes with Git for Windows), else PowerShell. */
+let cachedShell: string | null | undefined;
+function shellCommand(command: string): [string, string[]] {
+  if (process.platform !== "win32") return ["bash", ["-lc", command]];
+  if (cachedShell === undefined) {
+    const candidates = [
+      process.env.CODE_STUDIO_BASH,
+      "C:\\Program Files\\Git\\bin\\bash.exe",
+      "C:\\Program Files (x86)\\Git\\bin\\bash.exe",
+      process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, "Programs", "Git", "bin", "bash.exe"),
+    ];
+    cachedShell = candidates.find((c): c is string => Boolean(c && existsSync(c))) ?? null;
+  }
+  return cachedShell ? [cachedShell, ["-lc", command]] : ["powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", command]];
+}
+
+let hasRipgrep: boolean | undefined;
+
+/** Plain-JS search used when ripgrep isn't installed (common on Windows). */
+async function jsSearch(dir: string, root: string, re: RegExp, glob?: string): Promise<string[]> {
+  const globRe = glob ? new RegExp("^" + glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".") + "$") : null;
+  const hits: string[] = [];
+  const walk = async (d: string): Promise<void> => {
+    for (const e of await fs.readdir(d, { withFileTypes: true })) {
+      if (hits.length >= 300) return;
+      const full = path.join(d, e.name);
+      if (e.isDirectory()) {
+        if (!IGNORED_DIRS.has(e.name)) await walk(full);
+        continue;
+      }
+      if (globRe && !globRe.test(e.name)) continue;
+      const stat = await fs.stat(full);
+      if (stat.size > 2_000_000) continue;
+      const buf = await fs.readFile(full);
+      if (buf.subarray(0, 8000).includes(0)) continue;
+      buf.toString("utf8").split("\n").forEach((line, i) => {
+        if (hits.length < 300 && re.test(line)) hits.push(`${path.relative(root, full).split(path.sep).join("/")}:${i + 1}:${line.slice(0, 300)}`);
+      });
+    }
+  };
+  await walk(dir);
+  return hits;
+}
+
 export function runShell(
   command: string,
   cwd: string,
@@ -183,7 +227,8 @@ export function runShell(
     const env: NodeJS.ProcessEnv = { ...process.env, CI: "1", GIT_TERMINAL_PROMPT: "0" };
     // Keep the Anthropic key out of child processes the model starts.
     delete env.ANTHROPIC_API_KEY;
-    const child = spawn("bash", ["-lc", command], { cwd, env, detached: process.platform !== "win32" });
+    const [shell, args] = shellCommand(command);
+    const child = spawn(shell, args, { cwd, env, detached: process.platform !== "win32" });
     let output = "";
     let timedOut = false;
     const onData = (d: Buffer) => {
@@ -270,6 +315,17 @@ const impl: { [K in ToolName]: (input: z.infer<(typeof schemas)[K]>, ctx: ToolCo
 
   async search({ pattern, path: p, glob, ignore_case }, { root, signal }) {
     const dir = safePath(root, p);
+    hasRipgrep ??= (await runShell("rg --version", root, 10)).code === 0;
+    if (!hasRipgrep) {
+      let re: RegExp;
+      try {
+        re = new RegExp(pattern, ignore_case ? "i" : "");
+      } catch (err) {
+        return { isError: true, content: `Invalid regex: ${(err as Error).message}` };
+      }
+      const hits = await jsSearch(dir, root, re, glob);
+      return { content: hits.length ? clip(hits.join("\n")) : "No matches." };
+    }
     const q = (s: string) => `'${s.replace(/'/g, `'\\''`)}'`;
     const cmd = [
       "rg --line-number --no-heading --color never --max-columns 300 --max-count 50",

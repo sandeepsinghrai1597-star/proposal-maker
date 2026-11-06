@@ -298,7 +298,13 @@ async function refreshSessions() {
   }
 }
 
+function ensureModelOption(model) {
+  const sel = $("#modelSelect");
+  if (![...sel.options].some((o) => o.value === model)) sel.append(new Option(model, model));
+}
+
 function applySessionControls(s) {
+  ensureModelOption(s.model);
   $("#chatTitle").textContent = `${s.title}  ·  ${s.workspace.replace(state.config.workspaceRoot, "workspace")}`;
   $("#modelSelect").value = s.model;
   $("#effortSelect").value = s.effort;
@@ -430,9 +436,18 @@ $("#cloneForm").addEventListener("submit", async (e) => {
 
 (async function init() {
   state.config = await api("/api/config");
-  for (const m of state.config.models) $("#modelSelect").append(new Option(m, m));
+  // Models are listed after the warning check below adds the default if missing.
   for (const e of state.config.efforts) $("#effortSelect").append(new Option(`effort: ${e}`, e));
-  $("#keyWarning").hidden = state.config.hasApiKey;
+  const warn = $("#setupWarning");
+  if (!state.config.ollamaRunning && !state.config.hasApiKey) {
+    warn.innerHTML = "Ollama is not running. Install it from <b>ollama.com</b>, open it, then run <code>ollama pull mimo-v2.6:9b</code> and refresh.";
+    warn.hidden = false;
+  } else if (state.config.ollamaRunning && !state.config.models.length) {
+    warn.innerHTML = "No local model yet. In a terminal run <code>ollama pull mimo-v2.6:9b</code> (or <code>qwen2.5-coder:7b</code> on 8 GB RAM), then refresh.";
+    warn.hidden = false;
+  }
+  if (!state.config.models.includes(state.config.model)) state.config.models.unshift(state.config.model);
+  for (const m of state.config.models) $("#modelSelect").append(new Option(m.startsWith("claude-") ? `${m} (paid)` : `${m} (local, free)`, m));
   await loadFolders();
   newChatView();
 })();

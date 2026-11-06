@@ -1,6 +1,6 @@
 # Story Reel Factory
 
-> **New: [`code-studio/`](code-studio/README.md)**: chat-based AI coding agent (Claude Opus 5.5) that writes, runs, tests and pushes code for you. `cd code-studio && npm install && npm start`.
+> **New: [`code-studio/`](code-studio/README.md)**: chat-based AI coding agent that writes, runs, tests and pushes code for you. Runs free on your laptop with a local Ollama model; Claude Opus 5.5 optional. `cd code-studio && npm install && npm start`.
 
 Illustrated Hindi moral-story reels (the format reverse-engineered from @ranger_alex_, 51M-view
 top reel). One prompt → script → visuals → voice → captions → 1080x1920 MP4.

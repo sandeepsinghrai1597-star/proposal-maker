@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { config, EFFORT_LEVELS, MODELS, type Effort } from "./config.js";
+import { config, CLAUDE_MODELS, EFFORT_LEVELS, isLocalModel, isValidModel, type Effort } from "./config.js";
+import { listLocalModels } from "./local-agent.js";
 import { runAgent, type AgentEvent } from "./agent.js";
 import { createSession, deleteSession, listSessions, loadSession, saveSession, type Session } from "./store.js";
 import { runShell, safePath } from "./tools.js";
@@ -61,14 +62,17 @@ function resolveWorkspace(input: unknown): string {
   return p;
 }
 
-app.get("/api/config", (_req, res) => {
+app.get("/api/config", async (_req, res) => {
+  const local = await listLocalModels();
+  const hasKey = Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
   res.json({
-    models: MODELS,
+    models: [...local.models, ...(hasKey ? CLAUDE_MODELS : [])],
+    ollamaRunning: local.running,
     efforts: EFFORT_LEVELS,
     model: config.model,
     effort: config.effort,
     workspaceRoot: config.workspace,
-    hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN),
+    hasApiKey: hasKey,
     hasGithubToken: Boolean(config.githubToken),
     maxTaskUsd: config.maxTaskUsd,
   });
@@ -105,7 +109,7 @@ app.post("/api/sessions", (req, res) => {
   try {
     const { model, effort, workspace } = req.body ?? {};
     const s = createSession({
-      model: MODELS.includes(model) ? model : config.model,
+      model: isValidModel(model) ? model : config.model,
       effort: EFFORT_LEVELS.includes(effort) ? (effort as Effort) : config.effort,
       workspace: resolveWorkspace(workspace),
     });
@@ -125,7 +129,7 @@ app.patch("/api/sessions/:id", (req, res) => {
   if (!s) return;
   const { model, effort, autoApprove, title } = req.body ?? {};
   // Changing the model mid-chat is allowed; thinking blocks from the old model are simply ignored by the API.
-  if (MODELS.includes(model)) s.model = model;
+  if (isValidModel(model)) s.model = model;
   if (EFFORT_LEVELS.includes(effort)) s.effort = effort;
   if (typeof autoApprove === "boolean") s.autoApprove = autoApprove;
   if (typeof title === "string" && title.trim()) s.title = title.trim().slice(0, 100);
@@ -225,7 +229,9 @@ app.listen(config.port, config.host, () => {
   const url = `http://${config.host === "0.0.0.0" ? "localhost" : config.host}:${config.port}`;
   console.log(`\n  Code Studio is running: ${url}`);
   console.log(`  Model: ${config.model} (effort ${config.effort})   Workspace: ${config.workspace}`);
-  if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
+  if (isLocalModel(config.model)) {
+    console.log(`  Local mode (free): needs Ollama running at ${config.ollamaHost} and "ollama pull ${config.model}" done once.`);
+  } else if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
     console.log("  WARNING: ANTHROPIC_API_KEY is not set. Copy .env.example to .env and add your key.");
   }
   if (config.host !== "127.0.0.1" && !config.appPassword) {

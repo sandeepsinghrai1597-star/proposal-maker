@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { config, costUsd } from "./config.js";
+import { config, costUsd, isLocalModel } from "./config.js";
+import { runLocalAgent } from "./local-agent.js";
 import { systemPrompt } from "./prompt.js";
 import { saveSession, type Session } from "./store.js";
 import { NEEDS_APPROVAL, runTool, toolDefinitions, validateInput, type ToolName } from "./tools.js";
@@ -27,7 +28,9 @@ export interface RunOptions {
   signal?: AbortSignal;
 }
 
-const client = new Anthropic({ maxRetries: 4 });
+let anthropic: Anthropic | null = null;
+/** Created on first use so local-only setups never need an API key. */
+const client = () => (anthropic ??= new Anthropic({ maxRetries: 4 }));
 
 const SERVER_TOOLS: Anthropic.Beta.BetaToolUnion[] = [
   { type: "web_search_20260209", name: "web_search", max_uses: 8 },
@@ -74,6 +77,18 @@ function appendUserText(session: Session, text: string): void {
 }
 
 /**
+ * Thinking blocks recorded from a local model have no signature and would be rejected by the API, so they
+ * are left out of Claude requests. Claude's own blocks are sent back untouched.
+ */
+function forClaude(messages: Anthropic.Beta.BetaMessageParam[]): Anthropic.Beta.BetaMessageParam[] {
+  return messages.map((m) =>
+    m.role === "assistant" && Array.isArray(m.content) && m.content.some((b) => b.type === "thinking" && !b.signature)
+      ? { ...m, content: m.content.filter((b) => !(b.type === "thinking" && !b.signature)) }
+      : m,
+  );
+}
+
+/**
  * Run one user message to completion: stream the model, execute tools, loop until the model ends its turn.
  * The transcript is append-only (assistant content is stored exactly as returned), which keeps prompt
  * caching effective and thinking blocks valid across turns.
@@ -83,6 +98,7 @@ export async function runAgent(session: Session, userText: string, opts: RunOpti
   if (session.messages.length === 0) session.title = titleFrom(userText);
   appendUserText(session, userText);
   saveSession(session);
+  if (isLocalModel(session.model)) return runLocalAgent(session, opts);
 
   const system = systemPrompt({
     workspace: session.workspace,
@@ -97,13 +113,13 @@ export async function runAgent(session: Session, userText: string, opts: RunOpti
     if (signal?.aborted) return emit({ type: "done", stopReason: "stopped" });
     emit({ type: "turn_start", turn });
 
-    const stream = client.beta.messages.stream(
+    const stream = client().beta.messages.stream(
       {
         model: session.model,
         max_tokens: 64000,
         system,
         tools: [...toolDefinitions, ...SERVER_TOOLS],
-        messages: session.messages,
+        messages: forClaude(session.messages),
         thinking: { type: "adaptive", display: "summarized" },
         output_config: { effort: session.effort },
         cache_control: { type: "ephemeral" },
