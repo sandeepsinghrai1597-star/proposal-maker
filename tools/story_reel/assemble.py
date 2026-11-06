@@ -109,7 +109,7 @@ class Clip:
 
     def frame(self, k):  # k may exceed 1 slightly during the dissolve
         i = min(len(self.raw) - 1, max(0, int(k * self.dur * FPS)))
-        return grade(Image.fromarray(np.array(self.raw[i])), self.style if self.style == 'B' else 'none')
+        return grade(Image.fromarray(np.array(self.raw[i])), self.style)
 
 
 def card_frame(inner, paper):

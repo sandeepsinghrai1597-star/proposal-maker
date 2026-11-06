@@ -12,14 +12,14 @@ Run the whole pipeline. Each step has its own skill or tool. Work folder: `reels
 | 1 | Script | follow `.claude/skills/story-reel-script/SKILL.md` | `shots.json` (title, badge, vo, cap) |
 | 2 | Visual direction | follow `.claude/skills/story-reel-visuals/SKILL.md` | `shots.json` (style, characters, prompts, camera) |
 | 3 | Images | `python3 tools/story_reel/gen_images.py reels/<slug> --characters` | `images/*.png`, `prompts.md` |
-| 4 | (optional) motion | user animates stills in Meta AI / Grok / Kling with `prompts.md` | `clips/*.mp4` |
+| 4 | **Animate** | `~/ml/bin/python tools/story_reel/animate.py reels/<slug>` (LTX-Video image-to-video, ~2.5-5 min/shot on CPU; `--engine parallax` = fast 2.5D depth fallback). Run AFTER step 6 so clip lengths follow the voice | `clips/*.mp4` |
 | 5 | Voice | `python3 tools/story_reel/tts.py reels/<slug>` | `voice.mp3` |
 | 6 | Sync | `python3 tools/story_reel/align.py reels/<slug>` | `timing.json` |
 | 7 | Music | `python3 tools/make_music.py --seconds <total> --lift <turn s> --out reels/<slug>/music.wav` | `music.wav` |
 | 8 | Render | `python3 tools/story_reel/assemble.py reels/<slug>` | `final.mp4` |
 | 9 | QC | `python3 tools/story_reel/assemble.py reels/<slug> --stills ...` and Read them; ffprobe the MP4 | report |
 
-Shortcut for steps 3-8: `python3 tools/story_reel/make_reel.py reels/<slug>` (skips steps whose
+Order in practice: 1 → 2 → 3 → 5 → 6 → 4 → 7 → 8. Shortcut for steps 3-8: `python3 tools/story_reel/make_reel.py reels/<slug>` (skips steps whose
 inputs are missing and tells you what is needed).
 
 ## Rules
@@ -28,6 +28,8 @@ inputs are missing and tells you what is needed).
   on CPU; use `--variants 3` for weak shots and pick by eye), voice with Kokoro-82M (`hm_omega` = Aakash pitch,
   `hm_psi` = Ayaan pitch) directed by the measured pause engine. Write a concise framing-first
   `sdxl_prompt` per shot (CLIP reads 77 tokens) and `sdxl_no_chars: true` for close-ups/no-character shots.
+  Every shot MUST move like the reference: write a strong `motion_prompt` (one clear action + one ambient motion)
+  and animate with `animate.py`; never ship stills-only.
 - Keys: `GEMINI_API_KEY` (images), `ELEVENLABS_API_KEY` or `OPENAI_API_KEY` (voice) are optional upgrades.
   Without them: images come from the free apps via `prompts.md`; voice via free edge-tts (runs on a
   normal PC/phone internet; it cannot run inside a cloud sandbox whose proxy blocks WebSockets).

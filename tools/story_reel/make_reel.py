@@ -13,7 +13,7 @@ def run(*cmd):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('reel'); ap.add_argument('--persona'); ap.add_argument('--image-provider')
-    ap.add_argument('--voice-provider'); ap.add_argument('--redo', default=''); ap.add_argument('--preview', action='store_true')
+    ap.add_argument('--voice-provider'); ap.add_argument('--redo', default=''); ap.add_argument('--preview', action='store_true'); ap.add_argument('--no-animate', action='store_true')
     a = ap.parse_args(); d = os.path.abspath(a.reel); redo = set(a.redo.split(','))
     spec = json.load(open(os.path.join(d, 'shots.json')))
     have = lambda f: os.path.exists(os.path.join(d, f))
@@ -31,6 +31,9 @@ def main():
         if not ok: print('!! voice failed: rendering a silent preview with estimated timing')
     if have('voice.mp3'): run(os.path.join(H, 'align.py'), d)
     tm = json.load(open(os.path.join(d, 'timing.json'))) if have('timing.json') else None
+    if not a.no_animate and (not all(have(f'clips/{s["id"]}.mp4') for s in spec['shots']) or 'animate' in redo):
+        ml = os.environ.get('ML_PYTHON') or next((p for p in (os.path.expanduser('~/ml/bin/python'), '/home/user/ml/bin/python') if os.path.exists(p)), sys.executable)
+        print('$ animate (LTX-Video image-to-video, parallax fallback)'); subprocess.run([ml, os.path.join(H, 'animate.py'), d])
     if not have('music.wav') or 'music' in redo:
         total = tm['total'] if tm else sum(max(2.2, len(s.get('cap', '').split()) / 3.1) for s in spec['shots'])
         turn = next((x['start'] for x, s in zip(tm['shots'], spec['shots']) if s.get('beat') == 'turn'), total * .6) if tm else total * .6

@@ -35,6 +35,7 @@ prompt from `prompts.md` and save as `clips/<id>.mp4`; `assemble.py` uses clips 
 |---|---|---|
 | Images | SDXL base + ByteDance **SDXL-Lightning** 4-step (`tools/story_reel/local_images.py`) | OpenRAIL++ |
 | Voice | **Kokoro-82M** Hindi male voices (`tools/story_reel/kokoro_worker.py`), pitch-matched to Aakash/Ayaan, directed by the measured pause engine (Indic Parler-TTS also supported, needs a free HF token) | Apache-2.0 |
+| Animation | **LTX-Video 2B 0.9.6 distilled** image-to-video (`tools/story_reel/animate.py`), T5-XXL bf16 text encoder; Depth-Anything-V2 2.5D parallax fallback | LTX Open Weights / Apache-2.0 |
 | Captions sync | exact phrase map (no ASR) or faster-whisper | MIT |
 | Music | own numpy synth (`tools/make_music.py`) | ours |
 
