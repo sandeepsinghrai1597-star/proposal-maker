@@ -1,0 +1,332 @@
+{
+  "name": "02 Sales page visitor → abandoned checkout recovery",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 02 Abandoned checkout recovery\nRazorpay Payment Buttons don't emit a 'checkout started' event, so the sales page should POST `{ name, email, phone }` here when the visitor clicks **Pay** (or submits a pre-checkout form).\n\nFlow: wait 60 min → read **Purchases** tab (filled by workflow 03) → if no match → WhatsApp reminder (MARKETING template `checkout_reminder`, vars: {{1}} name, {{2}} link).\n\nOnly message people who gave their number on your form and consented.",
+        "height": 300,
+        "width": 480
+      },
+      "id": "e2b79d38-9957-5d7c-80d5-27a292113876",
+      "name": "Setup notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "checkout-started",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "f2c181d2-2ca1-5882-81f7-8ca9ee7e7887",
+      "name": "Checkout started",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        380
+      ],
+      "webhookId": "18e51266-aa95-4ae9-8608-3aa614c07a6f"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5690227d-50c8-4475-b57d-2f26e9d93bd4",
+              "name": "sheet_url",
+              "value": "https://docs.google.com/spreadsheets/d/REPLACE_ME/edit",
+              "type": "string"
+            },
+            {
+              "id": "574979e4-3a38-4467-a80c-709ed3c02015",
+              "name": "wa_phone_number_id",
+              "value": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+              "type": "string"
+            },
+            {
+              "id": "c02b5ca3-ea17-4030-ac8f-367fdc0a661d",
+              "name": "wa_api_version",
+              "value": "v21.0",
+              "type": "string"
+            },
+            {
+              "id": "90b286fd-bbca-4d4c-96fc-e8c769759f23",
+              "name": "wa_lang",
+              "value": "en",
+              "type": "string"
+            },
+            {
+              "id": "50d12fe2-c03d-4ef5-a3bc-de3f8e65fa2d",
+              "name": "from_email",
+              "value": "hello@REPLACE.com",
+              "type": "string"
+            },
+            {
+              "id": "bc237774-13c8-4e16-800f-a28df47eb79c",
+              "name": "owner_whatsapp",
+              "value": "91XXXXXXXXXX",
+              "type": "string"
+            },
+            {
+              "id": "11b8bbd3-3d59-43f7-a7ee-4bbf3a30d297",
+              "name": "checkout_link",
+              "value": "https://REPLACE.vercel.app/#pricing",
+              "type": "string"
+            },
+            {
+              "id": "d9ae3a46-4032-4f36-8734-02091e0b90dd",
+              "name": "wait_minutes",
+              "value": "60",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "6943116e-ee4a-53eb-85a1-bb040ffd4d02",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 60,
+        "unit": "minutes"
+      },
+      "id": "b129c17e-3900-587f-bc69-b3c070f40338",
+      "name": "Wait 60 min",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        380
+      ],
+      "webhookId": "9bd3ed2b-2e07-447b-a81b-b561092a2a1c"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Config').item.json.sheet_url }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Purchases"
+        },
+        "options": {}
+      },
+      "id": "b6f569ff-6091-5ff5-8482-d2cd63fe7f69",
+      "name": "Read Purchases",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        380
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Look for a purchase with the same phone or email after checkout started\nconst lead = $('Checkout started').first().json.body;\nconst purchases = $input.all().map(i => i.json);\nconst norm = s => String(s || '').replace(/\\D/g, '').slice(-10);\nconst bought = purchases.some(p =>\n  (lead.email && String(p.email || '').toLowerCase() === String(lead.email).toLowerCase()) ||\n  (lead.phone && norm(p.phone) === norm(lead.phone)));\nreturn [{ json: { ...lead, bought } }];"
+      },
+      "id": "e4a98ab1-e29b-52c9-9de7-0f9008cf75bc",
+      "name": "Did they buy?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "894bea02-46b3-43a0-b61b-1a7b708509d4",
+              "leftValue": "={{ $json.bought }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1c1b5f52-38e9-5d3b-be54-23b4e929eb88",
+      "name": "Not purchased?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config').item.json.wa_api_version }}/{{ $('Config').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.phone, type: 'template', template: { name: 'checkout_reminder', language: { code: $('Config').item.json.wa_lang }, components: [{ type: 'body', parameters: [{ type: 'text', text: $json.name || 'there' }, { type: 'text', text: $('Config').item.json.checkout_link }] }] } }) }}",
+        "options": {}
+      },
+      "id": "58a04fa4-acfe-5aa9-a2ba-4ba0a049ff34",
+      "name": "WhatsApp reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Config').item.json.sheet_url }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "name": "={{ $('Did they buy?').item.json.name }}",
+            "email": "={{ $('Did they buy?').item.json.email }}",
+            "phone": "={{ $('Did they buy?').item.json.phone }}",
+            "source": "checkout",
+            "status": "Abandoned - reminded"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "ebf5ca6d-66a5-5c23-aacb-a331aea36eed",
+      "name": "Log recovery attempt",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1540,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Checkout started": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Wait 60 min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 60 min": {
+      "main": [
+        [
+          {
+            "node": "Read Purchases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Purchases": {
+      "main": [
+        [
+          {
+            "node": "Did they buy?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Did they buy?": {
+      "main": [
+        [
+          {
+            "node": "Not purchased?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Not purchased?": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp reminder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "WhatsApp reminder": {
+      "main": [
+        [
+          {
+            "node": "Log recovery attempt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

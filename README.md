@@ -3,6 +3,8 @@
 Illustrated Hindi moral-story reels (the format reverse-engineered from @ranger_alex_, 51M-view
 top reel). One prompt → script → visuals → voice → captions → 1080x1920 MP4.
 
+> **New:** `launch-kit/` is the complete Done-For-You Instagram Infoproduct Launch Service kit (sales page, scripts, contract, n8n workflows, dashboard). See `launch-kit/README.md`.
+
 ## Start here
 | Doc | What |
 |---|---|

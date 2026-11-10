@@ -1,0 +1,227 @@
+{
+  "name": "01 Lead capture → CRM → welcome",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 01 Lead capture\nPOST JSON to the webhook from your sales-page form / Tally / Google Form (via Apps Script):\n`{ name, email, phone, instagram, source }`\nphone = 91XXXXXXXXXX\n\n1. Edit **Config**\n2. Google Sheets credential + a tab named **Leads**\n3. SMTP credential on *Welcome email*\n4. Header Auth credential on *WhatsApp welcome*: `Authorization` = `Bearer <META_TOKEN>`\n5. Create approved template `lead_welcome` with 1 body variable ({{1}} = name)",
+        "height": 300,
+        "width": 460
+      },
+      "id": "e2b79d38-9957-5d7c-80d5-27a292113876",
+      "name": "Setup notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "42e2e829-6fad-5778-b3fb-bee49d2a216a",
+      "name": "Lead webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        380
+      ],
+      "webhookId": "7a5f6c71-d852-4df5-bd71-2f2bf4372c24"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "83c12066-a22a-442d-9526-873b02e02a43",
+              "name": "sheet_url",
+              "value": "https://docs.google.com/spreadsheets/d/REPLACE_ME/edit",
+              "type": "string"
+            },
+            {
+              "id": "f4a7f8ce-3fd3-4f7a-9fcf-dc6e86e3f6d4",
+              "name": "wa_phone_number_id",
+              "value": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+              "type": "string"
+            },
+            {
+              "id": "5c9cb6db-b602-4896-bfe5-9382c590d98e",
+              "name": "wa_api_version",
+              "value": "v21.0",
+              "type": "string"
+            },
+            {
+              "id": "840879ad-6068-4fbd-93a7-003cae59f9e0",
+              "name": "wa_lang",
+              "value": "en",
+              "type": "string"
+            },
+            {
+              "id": "0845f30f-ed35-4d4d-abe0-efc5b4827f86",
+              "name": "from_email",
+              "value": "hello@REPLACE.com",
+              "type": "string"
+            },
+            {
+              "id": "ee1dfd67-527c-4583-9233-043f0caa00e4",
+              "name": "owner_whatsapp",
+              "value": "91XXXXXXXXXX",
+              "type": "string"
+            },
+            {
+              "id": "fc5f8830-7fff-4ed0-b4e5-8a33b2652d74",
+              "name": "lead_magnet_link",
+              "value": "https://REPLACE/free-guide.pdf",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "6943116e-ee4a-53eb-85a1-bb040ffd4d02",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Config').item.json.sheet_url }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "name": "={{ $('Lead webhook').item.json.body.name }}",
+            "email": "={{ $('Lead webhook').item.json.body.email }}",
+            "phone": "={{ $('Lead webhook').item.json.body.phone }}",
+            "instagram": "={{ $('Lead webhook').item.json.body.instagram }}",
+            "source": "={{ $('Lead webhook').item.json.body.source || 'website' }}",
+            "status": "New"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "43717f27-de13-5b48-b288-3f03606ff512",
+      "name": "Add to Leads sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        440,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Config').item.json.from_email }}",
+        "toEmail": "={{ $('Lead webhook').item.json.body.email }}",
+        "subject": "=Welcome {{ $('Lead webhook').item.json.body.name }}! Your free guide is inside",
+        "emailFormat": "text",
+        "text": "=Hi {{ $('Lead webhook').item.json.body.name }},\n\nThanks for signing up! Here's your free guide: {{ $('Config').item.json.lead_magnet_link }}\n\nReply to this email if you have any questions — I read every one.\n\n— [Creator Name]\n\nDon't want these emails? Reply STOP.",
+        "options": {}
+      },
+      "id": "5230b879-4fa4-5e32-84a5-b94c8ad587e7",
+      "name": "Welcome email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config').item.json.wa_api_version }}/{{ $('Config').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Lead webhook').item.json.body.phone, type: 'template', template: { name: 'lead_welcome', language: { code: $('Config').item.json.wa_lang }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Lead webhook').item.json.body.name || 'there' }] }] } }) }}",
+        "options": {}
+      },
+      "id": "44133c44-43a5-5001-87e8-c212911e58a4",
+      "name": "WhatsApp welcome",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        380
+      ]
+    }
+  ],
+  "connections": {
+    "Lead webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Add to Leads sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Leads sheet": {
+      "main": [
+        [
+          {
+            "node": "Welcome email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Welcome email": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp welcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
