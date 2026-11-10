@@ -1,0 +1,377 @@
+{
+  "name": "04 Post-launch 7-day nurture",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 04 Post-launch 7-day nurture\nCalled by workflow 03 (POST `{ name, phone, email }`).\nCreate 5 approved templates `nurture_d1 … nurture_d7` (texts from prompt P4). Each has {{1}} = name; `nurture_d7` also {{2}} = upsell link.\n\nWait nodes over 65 s are stored in the database, so this survives restarts.",
+        "height": 240,
+        "width": 460
+      },
+      "id": "e2b79d38-9957-5d7c-80d5-27a292113876",
+      "name": "Setup notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nurture-start",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "394c2883-2455-5179-8935-2cb82746f8a4",
+      "name": "Nurture start",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        380
+      ],
+      "webhookId": "c680762c-df10-432a-b998-24bff5de7d11"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a28be934-abc8-4bff-ba6b-0182072ec57f",
+              "name": "sheet_url",
+              "value": "https://docs.google.com/spreadsheets/d/REPLACE_ME/edit",
+              "type": "string"
+            },
+            {
+              "id": "8cef6098-499b-4f53-9108-464fc76cf40f",
+              "name": "wa_phone_number_id",
+              "value": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+              "type": "string"
+            },
+            {
+              "id": "1efacd8d-1d75-47b3-a6a2-791726e00f87",
+              "name": "wa_api_version",
+              "value": "v21.0",
+              "type": "string"
+            },
+            {
+              "id": "fe8977e2-ac48-4dcc-b189-4786c8b09643",
+              "name": "wa_lang",
+              "value": "en",
+              "type": "string"
+            },
+            {
+              "id": "aaa270c0-7313-481c-a3a1-ebf3f0ddf655",
+              "name": "from_email",
+              "value": "hello@REPLACE.com",
+              "type": "string"
+            },
+            {
+              "id": "21cefdac-73db-41f3-8659-54f9958b5be1",
+              "name": "owner_whatsapp",
+              "value": "91XXXXXXXXXX",
+              "type": "string"
+            },
+            {
+              "id": "50eeedba-038c-4499-979b-4d64fbb14217",
+              "name": "upsell_link",
+              "value": "https://REPLACE/upsell",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "6943116e-ee4a-53eb-85a1-bb040ffd4d02",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config').item.json.wa_api_version }}/{{ $('Config').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Nurture start').item.json.body.phone, type: 'template', template: { name: 'nurture_d1', language: { code: $('Config').item.json.wa_lang }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Nurture start').item.json.body.name || 'there' }] }] } }) }}",
+        "options": {}
+      },
+      "id": "c9b34d9f-83b0-56a7-942f-da206752d24f",
+      "name": "Day 1 · quick win",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "days"
+      },
+      "id": "2ed938c1-729d-527c-b19c-0e92de5c5cc6",
+      "name": "Wait 1 days (Day 2)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        380
+      ],
+      "webhookId": "13246c77-fc7d-45b9-b58d-bcbee1432efb"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config').item.json.wa_api_version }}/{{ $('Config').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Nurture start').item.json.body.phone, type: 'template', template: { name: 'nurture_d2', language: { code: $('Config').item.json.wa_lang }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Nurture start').item.json.body.name || 'there' }] }] } }) }}",
+        "options": {}
+      },
+      "id": "0e11326f-81dc-5ff1-9f8c-802b231189d3",
+      "name": "Day 2 · common mistake",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "days"
+      },
+      "id": "00034f4f-c659-54d7-8fcd-235c29280c80",
+      "name": "Wait 2 days (Day 4)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        380
+      ],
+      "webhookId": "f2bdfb0d-8245-4738-9216-402adef52b66"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config').item.json.wa_api_version }}/{{ $('Config').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Nurture start').item.json.body.phone, type: 'template', template: { name: 'nurture_d4', language: { code: $('Config').item.json.wa_lang }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Nurture start').item.json.body.name || 'there' }] }] } }) }}",
+        "options": {}
+      },
+      "id": "fc01f74e-fd7a-5a3a-98dc-8bc0f1ca6ba1",
+      "name": "Day 4 · success story",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "days"
+      },
+      "id": "67a3cc88-a5d6-58ec-8131-0a979a8e0f50",
+      "name": "Wait 2 days (Day 6)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1540,
+        380
+      ],
+      "webhookId": "0b73d66c-6552-4687-b16c-c2bb4fe454fe"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config').item.json.wa_api_version }}/{{ $('Config').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Nurture start').item.json.body.phone, type: 'template', template: { name: 'nurture_d6', language: { code: $('Config').item.json.wa_lang }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Nurture start').item.json.body.name || 'there' }] }] } }) }}",
+        "options": {}
+      },
+      "id": "badcb3cd-e862-5820-a67c-fe33165e7bb3",
+      "name": "Day 6 · feedback ask",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "days"
+      },
+      "id": "8eae9a0f-6dc4-5cff-8917-4587a219baf8",
+      "name": "Wait 1 days (Day 7)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1980,
+        380
+      ],
+      "webhookId": "b6919179-4ca9-48de-a4e6-100118e95c2b"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config').item.json.wa_api_version }}/{{ $('Config').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Nurture start').item.json.body.phone, type: 'template', template: { name: 'nurture_d7', language: { code: $('Config').item.json.wa_lang }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Nurture start').item.json.body.name || 'there' }, { type: 'text', text: $('Config').item.json.upsell_link }] }] } }) }}",
+        "options": {}
+      },
+      "id": "06d1424c-5d92-5e5c-836d-768caf020d55",
+      "name": "Day 7 · upsell",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        380
+      ]
+    }
+  ],
+  "connections": {
+    "Nurture start": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Day 1 · quick win",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Day 1 · quick win": {
+      "main": [
+        [
+          {
+            "node": "Wait 1 days (Day 2)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1 days (Day 2)": {
+      "main": [
+        [
+          {
+            "node": "Day 2 · common mistake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Day 2 · common mistake": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 days (Day 4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 days (Day 4)": {
+      "main": [
+        [
+          {
+            "node": "Day 4 · success story",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Day 4 · success story": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 days (Day 6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 days (Day 6)": {
+      "main": [
+        [
+          {
+            "node": "Day 6 · feedback ask",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Day 6 · feedback ask": {
+      "main": [
+        [
+          {
+            "node": "Wait 1 days (Day 7)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1 days (Day 7)": {
+      "main": [
+        [
+          {
+            "node": "Day 7 · upsell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

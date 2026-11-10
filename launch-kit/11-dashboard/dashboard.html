@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launch Metrics</title>
+<style>
+:root{--bg:#FBF7F1;--card:#fff;--ink:#14110F;--muted:#6b645c;--line:#e8e1d7;--accent:#E8590C;--good:#1F7A4D;--warn:#B45309}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14110F;--card:#1f1b18;--ink:#F3EEE7;--muted:#a59d93;--line:#332d28;--accent:#FF7A33;--good:#4ADE80;--warn:#FBBF24}}
+:root[data-theme="dark"]{--bg:#14110F;--card:#1f1b18;--ink:#F3EEE7;--muted:#a59d93;--line:#332d28;--accent:#FF7A33;--good:#4ADE80;--warn:#FBBF24}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0}h2{font-size:15px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}.kpi .l{color:var(--muted);font-size:13px}.kpi .s{font-size:12px;color:var(--muted)}
+.two{display:grid;gap:12px;grid-template-columns:1fr}@media(min-width:800px){.two{grid-template-columns:1fr 1fr}}
+.bar{display:flex;align-items:center;gap:10px;margin:8px 0}.bar .name{width:110px;font-size:13px;color:var(--muted)}
+.bar .track{flex:1;background:var(--line);border-radius:6px;height:22px;overflow:hidden}.bar .fill{height:100%;background:var(--accent);border-radius:6px;min-width:2px}
+.bar .num{width:70px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--muted);font-weight:600;font-size:12px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;min-width:0}
+form.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}form.row input{flex:1 1 120px}
+.task{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.task.done span{text-decoration:line-through;color:var(--muted)}
+.x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px}
+.goal{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:8px}.goal div{height:100%;background:var(--good)}
+.muted{color:var(--muted);font-size:13px}.scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Launch Metrics</h1><div class="muted" id="sub">Import your lead tracker CSV to update the funnel.</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <label class="btn primary">Import lead CSV<input type="file" id="csv" accept=".csv" hidden></label>
+      <button class="btn" id="export">Backup</button>
+      <label class="btn">Restore<input type="file" id="restore" accept=".json" hidden></label>
+    </div>
+  </div>
+
+  <div class="grid" id="kpis"></div>
+
+  <div class="two">
+    <div class="card"><h2>Funnel</h2><div id="funnel"></div><p class="muted" id="rates"></p></div>
+    <div class="card">
+      <h2>Revenue collected</h2>
+      <div class="kpi"><div class="v" id="rev">₹0</div><div class="s" id="revgoal"></div></div>
+      <div class="goal"><div id="goalbar" style="width:0"></div></div>
+      <div class="scroll"><table id="paytable"><thead><tr><th>Date</th><th>Client</th><th>Type</th><th>₹</th><th></th></tr></thead><tbody></tbody></table></div>
+      <form class="row" id="payform">
+        <input type="date" name="date" required>
+        <input name="client" placeholder="Client" required>
+        <select name="type"><option>Advance</option><option>Balance</option><option>Retainer</option><option>Other</option></select>
+        <input name="amt" type="number" min="1" placeholder="Amount ₹" required>
+        <button class="btn primary">Add</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="two" style="margin-top:12px">
+    <div class="card">
+      <h2>Clients in delivery</h2>
+      <div class="scroll"><table id="clienttable"><thead><tr><th>Client</th><th>Start</th><th>Day</th><th>Stage</th><th></th></tr></thead><tbody></tbody></table></div>
+      <form class="row" id="clientform">
+        <input name="name" placeholder="Client name" required>
+        <input type="date" name="start" required>
+        <button class="btn primary">Add</button>
+      </form>
+      <p class="muted">Day counts business days (Mon–Sat) from start. Day 10 = launch.</p>
+    </div>
+    <div class="card">
+      <h2>Outstanding tasks</h2>
+      <div id="tasks"></div>
+      <form class="row" id="taskform"><input name="t" placeholder="New task" required><button class="btn primary">Add</button></form>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='launch-metrics-v1', GOAL=100000;
+const STAGES=['Content outline','Content outline','Content draft','Sales page','Sales page','Content final','WhatsApp build','Testing','Launch kit','LAUNCH'];
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+let S={leads:[],payments:[],clients:[],tasks:[
+ {t:'Razorpay KYC submitted (proprietor name)',d:false},{t:'Sales page deployed on Vercel',d:false},
+ {t:'Calendly event live (7:30–9:30 PM)',d:false},{t:'50 leads researched',d:false},{t:'Demo product built',d:false}],imported:null};
+try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){};render()};
+
+function parseCSV(txt){const rows=[];let r=[],f='',q=false;for(let i=0;i<txt.length;i++){const c=txt[i];
+ if(q){if(c=='"'&&txt[i+1]=='"'){f+='"';i++}else if(c=='"')q=false;else f+=c}
+ else if(c=='"')q=true;else if(c==','){r.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&txt[i+1]=='\n')i++;r.push(f);rows.push(r);r=[];f=''}else f+=c}
+ if(f||r.length){r.push(f);rows.push(r)}const h=rows.shift().map(s=>s.trim());
+ return rows.filter(x=>x.some(v=>v.trim())).map(x=>Object.fromEntries(h.map((k,i)=>[k,(x[i]||'').trim()])))}
+
+function bizDay(start){const s=new Date(start+'T00:00'),t=new Date();t.setHours(0,0,0,0);if(t<s)return 0;let d=0;
+ for(let x=new Date(s);x<=t;x.setDate(x.getDate()+1)){if(x.getDay()!==0)d++}return d}
+
+function render(){
+ const L=S.leads, st=s=>(s||'').toLowerCase();
+ const has=(r,k)=>!!(r[k]&&r[k].trim());
+ const dms=L.filter(r=>has(r,'dm_sent_date')).length;
+ const replied=L.filter(r=>has(r,'response')||['replied','call booked','proposal sent','won','lost','not now'].includes(st(r.status))).length;
+ const calls=L.filter(r=>has(r,'call_booked_date')||['call booked','proposal sent','won'].includes(st(r.status))).length;
+ const won=L.filter(r=>st(r.status)==='won').length;
+ const qualified=L.filter(r=>has(r,'instagram_handle')).length;
+ const rev=S.payments.reduce((a,p)=>a+ +p.amt,0);
+ const active=S.clients.filter(c=>bizDay(c.start)<=17).length;
+ const open=S.tasks.filter(t=>!t.d).length;
+ const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
+ document.getElementById('kpis').innerHTML=[
+  ['DMs sent',dms,qualified+' leads with handles'],['Replies',replied,pct(replied,dms)+' reply rate'],
+  ['Calls booked',calls,pct(calls,replied)+' of replies'],['Closed',won,pct(won,calls)+' of calls'],
+  ['Revenue',inr(rev),'collected'],['In delivery',active,'clients'],['Open tasks',open,'']
+ ].map(([l,v,s])=>`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join('');
+ const max=Math.max(L.length,1);
+ document.getElementById('funnel').innerHTML=[['Leads',L.length],['DMs sent',dms],['Replied',replied],['Calls',calls],['Won',won]]
+  .map(([n,v])=>`<div class="bar"><span class="name">${n}</span><span class="track"><span class="fill" style="display:block;width:${v/max*100}%"></span></span><span class="num">${v}</span></div>`).join('');
+ document.getElementById('rates').textContent='Benchmarks for new senders: reply 10–15% · call 30–40% of replies · close 15–25% of calls.';
+ document.getElementById('sub').textContent=S.imported?`Lead data imported ${S.imported}`:'Import your lead tracker CSV to update the funnel.';
+ document.getElementById('rev').textContent=inr(rev);
+ document.getElementById('revgoal').textContent=`${Math.round(rev/GOAL*100)}% of ${inr(GOAL)} monthly goal`;
+ document.getElementById('goalbar').style.width=Math.min(100,rev/GOAL*100)+'%';
+ document.querySelector('#paytable tbody').innerHTML=S.payments.map((p,i)=>`<tr><td>${p.date}</td><td>${esc(p.client)}</td><td>${p.type}</td><td>${inr(p.amt)}</td><td><button class="x" data-del-pay="${i}" aria-label="Delete">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">No payments yet.</td></tr>';
+ document.querySelector('#clienttable tbody').innerHTML=S.clients.map((c,i)=>{const d=bizDay(c.start);
+  const stage=d===0?'Not started':d<=10?STAGES[d-1]:d<=17?'7-day support':'Done';
+  return `<tr><td>${esc(c.name)}</td><td>${c.start}</td><td>${Math.min(d,10)}/10</td><td>${stage}</td><td><button class="x" data-del-client="${i}" aria-label="Delete">×</button></td></tr>`}).join('')||'<tr><td colspan="5" class="muted">No clients yet.</td></tr>';
+ document.getElementById('tasks').innerHTML=S.tasks.map((t,i)=>`<label class="task ${t.d?'done':''}"><input type="checkbox" data-task="${i}" ${t.d?'checked':''}><span>${esc(t.t)}</span><button class="x" data-del-task="${i}" aria-label="Delete">×</button></label>`).join('');
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.getElementById('csv').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{S.leads=parseCSV(t);S.imported=new Date().toLocaleString('en-IN');save()})};
+document.getElementById('payform').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));S.payments.push(d);e.target.reset();save()};
+document.getElementById('clientform').onsubmit=e=>{e.preventDefault();S.clients.push(Object.fromEntries(new FormData(e.target)));e.target.reset();save()};
+document.getElementById('taskform').onsubmit=e=>{e.preventDefault();S.tasks.push({t:e.target.t.value,d:false});e.target.reset();save()};
+document.body.addEventListener('click',e=>{const t=e.target.dataset;
+ if(t.delPay)S.payments.splice(+t.delPay,1),save();if(t.delClient)S.clients.splice(+t.delClient,1),save();if(t.delTask)S.tasks.splice(+t.delTask,1),save()});
+document.body.addEventListener('change',e=>{if(e.target.dataset.task){S.tasks[+e.target.dataset.task].d=e.target.checked;save()}});
+document.getElementById('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));a.download='launch-metrics-backup.json';a.click()};
+document.getElementById('restore').onchange=e=>{const f=e.target.files[0];if(f)f.text().then(t=>{S=JSON.parse(t);save()})};
+render();
+</script>
+</body>
+</html>

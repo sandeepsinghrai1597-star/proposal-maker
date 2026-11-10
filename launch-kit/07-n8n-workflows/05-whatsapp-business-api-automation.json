@@ -1,0 +1,465 @@
+{
+  "name": "05 WhatsApp Business API auto-reply + routing",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 05 WhatsApp Business API automation (Meta Cloud API)\nMeta App → WhatsApp → Configuration → Callback URL `https://YOUR-N8N/webhook/whatsapp`, verify token = Config.verify_token, subscribe to **messages**.\n\nGET = Meta's one-time verification. POST = inbound messages.\nReplies are free-form text — allowed only within 24 h of the customer's last message (customer-service window).\n'other' intents are forwarded to the owner's WhatsApp.\n\nUsing Interakt/Gupshup instead? Point their webhook here and swap the HTTP nodes for their send-message API.",
+        "height": 320,
+        "width": 500
+      },
+      "id": "e2b79d38-9957-5d7c-80d5-27a292113876",
+      "name": "Setup notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "60f0a004-aca2-5e06-a2fa-e0a459177500",
+      "name": "WA verify (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        340
+      ],
+      "webhookId": "c8650c70-9201-4940-b65f-ab9303b634df"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f67f77f0-d966-49ed-8aab-04d5e6dfae87",
+              "name": "sheet_url",
+              "value": "https://docs.google.com/spreadsheets/d/REPLACE_ME/edit",
+              "type": "string"
+            },
+            {
+              "id": "6243c73c-30ef-4c02-8fed-cf4834b7b615",
+              "name": "wa_phone_number_id",
+              "value": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+              "type": "string"
+            },
+            {
+              "id": "2bd9dbf6-8408-4740-b134-bf8ca228c1e4",
+              "name": "wa_api_version",
+              "value": "v21.0",
+              "type": "string"
+            },
+            {
+              "id": "edbd97ab-8322-46b1-866e-44523f828e7d",
+              "name": "wa_lang",
+              "value": "en",
+              "type": "string"
+            },
+            {
+              "id": "2ee27ad9-6a9c-4794-8ad9-c0cb8a913f09",
+              "name": "from_email",
+              "value": "hello@REPLACE.com",
+              "type": "string"
+            },
+            {
+              "id": "6617fc78-fc5a-49ae-87b9-11358d942b45",
+              "name": "owner_whatsapp",
+              "value": "91XXXXXXXXXX",
+              "type": "string"
+            },
+            {
+              "id": "ba01bf50-decb-4c75-95a6-41f9ae36a852",
+              "name": "verify_token",
+              "value": "REPLACE_WITH_ANY_RANDOM_STRING",
+              "type": "string"
+            },
+            {
+              "id": "13fd0cbd-85a1-4ee9-b9aa-32f5b06bf754",
+              "name": "sales_link",
+              "value": "https://REPLACE.vercel.app",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "6943116e-ee4a-53eb-85a1-bb040ffd4d02",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "026c487f-f42f-42cf-a993-f3a3ae54b8a4",
+              "leftValue": "={{ $('WA verify (GET)').item.json.query['hub.verify_token'] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "={{ $('Config').item.json.verify_token }}"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4a17a323-fef5-554e-8c4e-3ed152eaab2f",
+      "name": "Token ok?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('WA verify (GET)').item.json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "id": "bd86a110-28cc-5653-97a0-c38f4ba11597",
+      "name": "Return challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "forbidden",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "id": "74a71a9d-7cf9-51df-b5a5-f0771ed473c5",
+      "name": "Reject",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "f8a716d4-b990-51d0-8bb5-a8f3fc251df6",
+      "name": "WA inbound",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        620
+      ],
+      "webhookId": "b15ff44e-5c79-446d-aac7-284d66e756dc"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ccc577fb-1f64-4680-8478-c63808e0d829",
+              "name": "sheet_url",
+              "value": "https://docs.google.com/spreadsheets/d/REPLACE_ME/edit",
+              "type": "string"
+            },
+            {
+              "id": "87740b7a-f046-4e58-a616-71a37e31a894",
+              "name": "wa_phone_number_id",
+              "value": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+              "type": "string"
+            },
+            {
+              "id": "97b4e5fd-7f1a-4307-85d1-adbde4d43279",
+              "name": "wa_api_version",
+              "value": "v21.0",
+              "type": "string"
+            },
+            {
+              "id": "0f1d782d-8e4a-4cb3-9cb7-d8415f5ad48a",
+              "name": "wa_lang",
+              "value": "en",
+              "type": "string"
+            },
+            {
+              "id": "960fd17f-c976-4fef-bf1a-c09ebb17ea7a",
+              "name": "from_email",
+              "value": "hello@REPLACE.com",
+              "type": "string"
+            },
+            {
+              "id": "92b1b831-8e23-4a2e-a669-b1a9c36b10bb",
+              "name": "owner_whatsapp",
+              "value": "91XXXXXXXXXX",
+              "type": "string"
+            },
+            {
+              "id": "cdd5afe0-4066-40b9-982b-a4083f51ddfd",
+              "name": "verify_token",
+              "value": "REPLACE_WITH_ANY_RANDOM_STRING",
+              "type": "string"
+            },
+            {
+              "id": "c4b9cc29-09cb-457a-a2eb-7cf147d5b359",
+              "name": "sales_link",
+              "value": "https://REPLACE.vercel.app",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "0aa08fbe-9f9d-4ecb-9a35-93173e91aae8",
+      "name": "Config1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        360,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract the first inbound text message from a Meta webhook payload\nconst v = $('WA inbound').first().json.body?.entry?.[0]?.changes?.[0]?.value || {};\nconst m = v.messages?.[0];\nif (!m) return [];   // status updates (delivered/read) — nothing to do\nconst text = (m.text?.body || m.button?.text || '').trim();\nconst t = text.toLowerCase();\nlet intent = 'other';\nif (/price|kitne|cost|fees|rate|₹/.test(t)) intent = 'price';\nelse if (/link|buy|kharid|payment|pay/.test(t)) intent = 'buy';\nelse if (/^(hi|hello|hey|namaste)\\b/.test(t)) intent = 'greeting';\nelse if (/stop|unsubscribe/.test(t)) intent = 'stop';\nreturn [{ json: { from: m.from, name: v.contacts?.[0]?.profile?.name || '', text, intent } }];"
+      },
+      "id": "2df1a36d-8335-53d1-952b-ba0cc01ecd38",
+      "name": "Parse message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        580,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Config1').first().json;\nconst r = {\n  price: `Hi ${$json.name || ''}! 🙏 Product ki saari details aur price yahan hai: ${c.sales_link}`,\n  buy: `Yeh raha secure payment link: ${c.sales_link} — payment ke turant baad aapko WhatsApp pe access mil jayega.`,\n  greeting: `Namaste ${$json.name || ''}! Main aapki kaise help kar sakta hoon? \"price\" ya \"link\" likhiye, ya apna sawaal bhejiye.`,\n  stop: `Done — aapko ab koi promotional message nahi aayega.`,\n  other: `Thank you! Aapka message mil gaya. Team jaldi reply karegi (usually 12 ghante mein).`\n};\nreturn [{ json: { ...$json, reply: r[$json.intent] } }];"
+      },
+      "id": "986447e6-2b2c-5a47-bd2b-1163837891f5",
+      "name": "Pick reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config1').item.json.wa_api_version }}/{{ $('Config1').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.from, type: 'text', text: { body: $json.reply } }) }}",
+        "options": {}
+      },
+      "id": "53f98f9e-5536-5b1e-abf9-43965f919658",
+      "name": "Send auto-reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1020,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "e9bce064-0b98-489f-9efc-3705ec930b6a",
+              "leftValue": "={{ $('Pick reply').item.json.intent }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "other"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "81553e0e-fd0a-5171-b245-2d22fb5d4287",
+      "name": "Needs a human?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1240,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config1').item.json.wa_api_version }}/{{ $('Config1').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Config1').item.json.owner_whatsapp, type: 'text', text: { body: '📩 New WhatsApp from ' + ($('Pick reply').item.json.name || $('Pick reply').item.json.from) + ' (' + $('Pick reply').item.json.from + '): ' + $('Pick reply').item.json.text } }) }}",
+        "options": {}
+      },
+      "id": "ad97c854-8729-5de5-8b1b-d980ec55d0b1",
+      "name": "Notify owner",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1460,
+        540
+      ]
+    }
+  ],
+  "connections": {
+    "WA verify (GET)": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Token ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token ok?": {
+      "main": [
+        [
+          {
+            "node": "Return challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WA inbound": {
+      "main": [
+        [
+          {
+            "node": "Config1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config1": {
+      "main": [
+        [
+          {
+            "node": "Parse message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse message": {
+      "main": [
+        [
+          {
+            "node": "Pick reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick reply": {
+      "main": [
+        [
+          {
+            "node": "Send auto-reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send auto-reply": {
+      "main": [
+        [
+          {
+            "node": "Needs a human?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs a human?": {
+      "main": [
+        [
+          {
+            "node": "Notify owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

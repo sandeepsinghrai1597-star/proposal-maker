@@ -1,0 +1,361 @@
+{
+  "name": "03 Purchase confirmation → delivery",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 03 Purchase → delivery\nRazorpay Dashboard → Settings → Webhooks → add `https://YOUR-N8N/webhook/razorpay` with event **payment.captured** and a secret (copy it into Config).\n\n*Self-hosted n8n:* set env `NODE_FUNCTION_ALLOW_BUILTIN=crypto` so the Code node can verify the signature.\n\nTemplate `purchase_delivery` (UTILITY): {{1}} name, {{2}} product, {{3}} link.",
+        "height": 280,
+        "width": 480
+      },
+      "id": "e2b79d38-9957-5d7c-80d5-27a292113876",
+      "name": "Setup notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "razorpay",
+        "responseMode": "onReceived",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "fa9201ee-5b1c-5342-a96f-b523b0275014",
+      "name": "Razorpay webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        380
+      ],
+      "webhookId": "309754b3-05ee-4b46-8167-8eddd2ff7e84"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1fa4a292-f185-408a-a07a-f4f8492a0a5c",
+              "name": "sheet_url",
+              "value": "https://docs.google.com/spreadsheets/d/REPLACE_ME/edit",
+              "type": "string"
+            },
+            {
+              "id": "b543324a-a4c9-4616-a143-1d62276d1455",
+              "name": "wa_phone_number_id",
+              "value": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+              "type": "string"
+            },
+            {
+              "id": "cdaade67-4b25-4de2-aa3c-ca842f297e0c",
+              "name": "wa_api_version",
+              "value": "v21.0",
+              "type": "string"
+            },
+            {
+              "id": "747962e2-2947-4dd6-b891-37e76550581e",
+              "name": "wa_lang",
+              "value": "en",
+              "type": "string"
+            },
+            {
+              "id": "e0adfca7-dcfc-496a-b1c4-e5acddd86848",
+              "name": "from_email",
+              "value": "hello@REPLACE.com",
+              "type": "string"
+            },
+            {
+              "id": "d69a29aa-2217-4967-9869-3c13616a676a",
+              "name": "owner_whatsapp",
+              "value": "91XXXXXXXXXX",
+              "type": "string"
+            },
+            {
+              "id": "cd23bc91-9d55-460b-a29c-bb4e3d0aba25",
+              "name": "razorpay_webhook_secret",
+              "value": "REPLACE_WITH_RAZORPAY_WEBHOOK_SECRET",
+              "type": "string"
+            },
+            {
+              "id": "82ba8df0-9f4b-4fb0-8a8b-f982b8d700d0",
+              "name": "delivery_link",
+              "value": "https://REPLACE/product-download",
+              "type": "string"
+            },
+            {
+              "id": "53a18f6b-0774-4bd0-9a2d-fc6c8463450d",
+              "name": "product_name",
+              "value": "REPLACE Product Name",
+              "type": "string"
+            },
+            {
+              "id": "0d067b13-d105-45b0-9515-06fa3dee6974",
+              "name": "nurture_webhook_url",
+              "value": "https://YOUR-N8N/webhook/nurture-start",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "6943116e-ee4a-53eb-85a1-bb040ffd4d02",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verify Razorpay signature: HMAC-SHA256(raw body, webhook secret) must equal x-razorpay-signature\nconst crypto = require('crypto');\nconst secret = $('Config').first().json.razorpay_webhook_secret;\nconst raw = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst expected = crypto.createHmac('sha256', secret).update(raw).digest('hex');\nconst sig = $('Razorpay webhook').first().json.headers['x-razorpay-signature'];\nconst body = JSON.parse(raw.toString('utf8'));\nconst p = body?.payload?.payment?.entity || {};\nreturn [{ json: {\n  valid: sig === expected && body.event === 'payment.captured',\n  event: body.event,\n  payment_id: p.id, amount_inr: (p.amount || 0) / 100,\n  email: p.email, phone: String(p.contact || '').replace(/\\D/g, ''),\n  name: p.notes?.name || p.notes?.full_name || '',\n  notes: p.notes || {}\n} }];"
+      },
+      "id": "b4724479-e22c-5ed4-b878-0649e73d5a30",
+      "name": "Verify signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "b17315a1-9abc-4a43-8131-dd4f0d5cb449",
+              "leftValue": "={{ $json.valid }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3fcdec54-c67d-59a5-9282-fb62fac77eb8",
+      "name": "Valid payment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Config').item.json.sheet_url }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Purchases"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "payment_id": "={{ $json.payment_id }}",
+            "name": "={{ $json.name }}",
+            "email": "={{ $json.email }}",
+            "phone": "={{ $json.phone }}",
+            "amount_inr": "={{ $json.amount_inr }}",
+            "product": "={{ $('Config').item.json.product_name }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "b67ec8e1-1412-5348-8fde-cb942bf69ac0",
+      "name": "Add to Purchases",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/{{ $('Config').item.json.wa_api_version }}/{{ $('Config').item.json.wa_phone_number_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Verify signature').item.json.phone, type: 'template', template: { name: 'purchase_delivery', language: { code: $('Config').item.json.wa_lang }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Verify signature').item.json.name || 'there' }, { type: 'text', text: $('Config').item.json.product_name }, { type: 'text', text: $('Config').item.json.delivery_link }] }] } }) }}",
+        "options": {}
+      },
+      "id": "66422591-2ac3-5ece-8953-f3da64a1302f",
+      "name": "WhatsApp delivery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Config').item.json.from_email }}",
+        "toEmail": "={{ $('Verify signature').item.json.email }}",
+        "subject": "=Your {{ $('Config').item.json.product_name }} is here 🎉",
+        "emailFormat": "text",
+        "text": "=Hi {{ $('Verify signature').item.json.name || 'there' }},\n\nThank you for your purchase (Payment ID {{ $('Verify signature').item.json.payment_id }}).\n\nAccess your product here: {{ $('Config').item.json.delivery_link }}\n\nStart with Chapter 1 today — it takes 15 minutes.\n\n— [Creator Name]",
+        "options": {}
+      },
+      "id": "00b2c68c-863c-5c4e-8a9b-2691518a9ed8",
+      "name": "Delivery email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1320,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.nurture_webhook_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: $('Verify signature').item.json.name, phone: $('Verify signature').item.json.phone, email: $('Verify signature').item.json.email }) }}",
+        "options": {}
+      },
+      "id": "df14cc1d-8b8e-5412-91e7-288367ebc518",
+      "name": "Start 7-day nurture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        300
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "dc255363-5e0a-5ebb-91a7-28a00fd37569",
+      "name": "Ignore",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        880,
+        480
+      ]
+    }
+  ],
+  "connections": {
+    "Razorpay webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Verify signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify signature": {
+      "main": [
+        [
+          {
+            "node": "Valid payment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payment?": {
+      "main": [
+        [
+          {
+            "node": "Add to Purchases",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ignore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Purchases": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp delivery": {
+      "main": [
+        [
+          {
+            "node": "Delivery email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivery email": {
+      "main": [
+        [
+          {
+            "node": "Start 7-day nurture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
